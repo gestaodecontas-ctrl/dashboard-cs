@@ -594,11 +594,40 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
+    // Parser genérico (Jornada, Prestação, Experience)
     function parseCsv(text) {
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
       if (!lines.length) return [];
       const headers = lines[0].split(",").map(h => h.trim());
       return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (cols[i] || "").trim();
+        });
+        return obj;
+      });
+    }
+
+    // Parser especial da Batalha Naval (mantém linhas vazias para respeitar 1–4)
+    async function fetchCsvBatalha(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+
+      const lines = text.split(/\r?\n/); // NÃO remove vazias
+      // Linha 0 -> linha 1 do Sheets (vazia)
+      // Linha 1 -> linha 2 (totais produto)
+      // Linha 2 -> linha 3 (unitário)
+      // Linha 3 -> linha 4 (cabeçalho real)
+      // Linha 4+ -> dados dos alunos
+
+      if (lines.length < 5) return [];
+
+      const headerLine = lines[3];
+      const headers = headerLine.split(",").map(h => h.trim());
+
+      const dataLines = lines.slice(4).filter(l => l.trim() !== "");
+      return dataLines.map(line => {
         const cols = line.split(",");
         const obj = {};
         headers.forEach((h, i) => {
@@ -627,24 +656,16 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // NOVA VERSÃO ROBUSTA – números BR (R$ 20.300,00 -> 20300)
+    // Conversão segura de R$ 20.300,00 -> 20300
     function parseNumberBR(s) {
       if (!s) return 0;
-
       let v = s.toString()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
-
-      // deixa só números, vírgula, ponto e sinal
       v = v.replace(/[^0-9,.-]+/g, "");
       if (!v) return 0;
-
-      // remove pontos de milhar: 20.300,00 -> 20300,00
       v = v.replace(/\.(?=\d{3}(\D|$))/g, "");
-
-      // vírgula vira ponto decimal: 20300,00 -> 20300.00
       v = v.replace(",", ".");
-
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -714,22 +735,17 @@
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      // coluna do aluno / cliente
       const hAluno =
-        headers.find(h => /aluno|cliente|oportunidade de vendas/i.test(h)) || headers[0];
+        headers.find(h => /cliente|aluno|oportunidade de vendas/i.test(h)) || headers[0];
 
-      // coluna de valor total por aluno
-      let hTotal = headers.find(h =>
-        normalizeStr(h).includes("oportunidade total por aluno")
-      );
-      if (!hTotal) {
-        hTotal = headers.find(h => /total/i.test(h)) || headers[headers.length - 1];
-      }
+      const hTotal = headers.find(h =>
+        normalizeStr(h) === "oportunidade total por aluno"
+      ) || "";
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
-          const totalRaw = r[hTotal] || "";
+          const totalRaw = hTotal ? (r[hTotal] || "") : "";
           const total = parseNumberBR(totalRaw);
           return {
             cliente: r[hAluno] || "",
@@ -784,7 +800,6 @@
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
-      // Concluídos = avanço >= 99%
       const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
@@ -1117,7 +1132,7 @@
 
       jornadaData.forEach(j => {
         const avanco = j.avancoPercent || 0;
-        if (avanco < 99) return; // só quem concluiu a jornada
+        if (avanco < 99) return;
 
         const cliente = j.cliente;
         const prest = prestPorCliente[cliente];
@@ -1302,7 +1317,7 @@
         const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
           fetchCsv(URL_JORNADA),
           fetchCsv(URL_PRESTACAO),
-          fetchCsv(URL_BATALHA),
+          fetchCsvBatalha(URL_BATALHA),
           fetchCsv(URL_EXPERIENCE)
         ]);
 
