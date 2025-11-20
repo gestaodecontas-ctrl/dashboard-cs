@@ -537,7 +537,7 @@
       </table>
     </div>
 
-    <!-- Encerrados -->
+    <!-- Seção: Encerrados -->
     <h2 class="section-title section-enc"><span class="icon"></span>Alunos encerrados / finalizados</h2>
     <div class="card">
       <div class="card-header">
@@ -594,7 +594,67 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // ---------- Helpers ----------
+    // ---------- PARSERS BÁSICOS ----------
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+      const headers = lines[0].split(",").map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (cols[i] || "").trim();
+        });
+        return obj;
+      });
+    }
+
+    // Parser específico para a Batalha Naval (por causa das linhas 1 e 2 especiais)
+    async function fetchBatalhaCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+
+      // Encontrar a linha de cabeçalho REAL (Status, Cliente, ... , Oportunidade total por aluno)
+      let headerIndex = -1;
+      for (let i = 0; i < lines.length; i++) {
+        const cols = lines[i].split(",");
+        const hasCliente = cols.some(c => /cliente/i.test(c));
+        const hasOportunidadeAluno = cols.some(c => /oportunidade.*total.*aluno/i.test(c));
+        if (hasCliente && hasOportunidadeAluno) {
+          headerIndex = i;
+          break;
+        }
+      }
+
+      // Se não achar, usa o parser genérico
+      if (headerIndex === -1) {
+        return parseCsv(text);
+      }
+
+      const headerCols = lines[headerIndex].split(",").map(h => h.trim());
+      const dataLines = lines.slice(headerIndex + 1);
+      const rows = [];
+
+      dataLines.forEach(line => {
+        if (!line.trim()) return;
+        const cols = line.split(",");
+        const obj = {};
+        headerCols.forEach((h, idx) => {
+          obj[h] = (cols[idx] || "").trim();
+        });
+
+        const clienteHeader = headerCols.find(h => /cliente/i.test(h));
+        const clienteNome = clienteHeader ? (obj[clienteHeader] || "").trim() : "";
+        if (!clienteNome) return; // ignora linhas vazias ou totais
+
+        rows.push(obj);
+      });
+
+      return rows;
+    }
 
     function normalizeStr(s) {
       if (!s) return "";
@@ -610,22 +670,18 @@
       if (!s) return 0;
       let v = s.toString().replace("%", "").trim();
       v = v.replace(/[^0-9,.-]+/g, "");
-      v = v.replace(/\.(?=\d{3}(\D|$))/g, "");
-      v = v.replace(",", ".");
+      v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
 
-    // R$ 20.300,00 -> 20300
     function parseNumberBR(s) {
       if (!s) return 0;
-      let v = s.toString()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
+      let v = s.toString();
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       v = v.replace(/[^0-9,.-]+/g, "");
       if (!v) return 0;
-      v = v.replace(/\.(?=\d{3}(\D|$))/g, "");
-      v = v.replace(",", ".");
+      v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -643,58 +699,10 @@
     async function fetchCsv(url) {
       const res = await fetch(url);
       const text = await res.text();
-      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
-      if (!lines.length) return [];
-      const headers = lines[0].split(",").map(h => h.trim());
-      return lines.slice(1).map(line => {
-        const cols = line.split(",");
-        const obj = {};
-        headers.forEach((h, i) => {
-          obj[h] = (cols[i] || "").trim();
-        });
-        return obj;
-      });
+      return parseCsv(text);
     }
 
-    // Parser ESPECÍFICO da Batalha Naval
-    async function fetchCsvBatalha(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-      const lines = text.split(/\r?\n/);
-
-      // procura a linha que contém "Oportunidade total por aluno"
-      const headerIndex = lines.findIndex(l => l.includes("Oportunidade total por aluno"));
-      if (headerIndex === -1) {
-        // fallback: usa parser normal
-        const generic = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
-        if (!generic.length) return [];
-        const headers = generic[0].split(",").map(h => h.trim());
-        return generic.slice(1).map(line => {
-          const cols = line.split(",");
-          const obj = {};
-          headers.forEach((h, i) => {
-            obj[h] = (cols[i] || "").trim();
-          });
-          return obj;
-        });
-      }
-
-      const headerLine = lines[headerIndex];
-      const headers = headerLine.split(",").map(h => h.trim());
-      const dataLines = lines.slice(headerIndex + 1).filter(l => l.trim() !== "");
-
-      return dataLines.map(line => {
-        const cols = line.split(",");
-        const obj = {};
-        headers.forEach((h, i) => {
-          obj[h] = (cols[i] || "").trim();
-        });
-        return obj;
-      });
-    }
-
-    // ---------- Normalização dos dados ----------
-
+    // ---------- NORMALIZAÇÃO DAS ABAS ----------
     function normalizeJornada(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
@@ -739,21 +747,18 @@
         }));
     }
 
-    // Batalha Naval – usa explicitamente "Oportunidade total por aluno"
+    // >>> AQUI: USANDO APENAS A COLUNA "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-
-      const hAluno = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
-
-      const hTotal = headers.find(h =>
-        normalizeStr(h) === "oportunidade total por aluno"
-      ) || "";
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
+      const hTotalAluno = headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
+                          headers.find(h => /oportunidade/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
-          const totalRaw = hTotal ? (r[hTotal] || "") : "";
+          const totalRaw = hTotalAluno ? (r[hTotalAluno] || "") : "";
           const total = parseNumberBR(totalRaw);
           return {
             cliente: r[hAluno] || "",
@@ -804,11 +809,18 @@
       });
     }
 
-    // ---------- KPIs & Gráficos ----------
+    // Batalha Naval alinhada com a Jornada filtrada
+    function getBnavForJornada(jornadaData) {
+      if (!jornadaData || !jornadaData.length) return [];
+      const namesSet = new Set(jornadaData.map(j => normalizeStr(j.cliente)));
+      return allBnav.filter(b => namesSet.has(normalizeStr(b.cliente)));
+    }
 
+    // ---------- KPIs ----------
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
+      // Concluídos = avanço >= 99%
       const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
@@ -852,6 +864,7 @@
         `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
+    // ---------- GRÁFICOS ----------
     function buildAvancoChart(jornadaData) {
       const ctx = document.getElementById("chart-avanco").getContext("2d");
       if (chartAvanco) chartAvanco.destroy();
@@ -1030,8 +1043,7 @@
       `;
     }
 
-    // ---------- Tabelas ----------
-
+    // ---------- TABELAS ----------
     function buildAttentionTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("attention-body");
       tbody.innerHTML = "";
@@ -1141,7 +1153,7 @@
 
       jornadaData.forEach(j => {
         const avanco = j.avancoPercent || 0;
-        if (avanco < 99) return;
+        if (avanco < 99) return; // só quem concluiu a jornada
 
         const cliente = j.cliente;
         const prest = prestPorCliente[cliente];
@@ -1205,8 +1217,7 @@
       });
     }
 
-    // ---------- Modal ----------
-
+    // ---------- MODAL ----------
     function openAlunoModal(nome) {
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
@@ -1259,8 +1270,7 @@
       if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
     });
 
-    // ---------- Filtros ----------
-
+    // ---------- FILTROS ----------
     function initFilters() {
       const planoSelect = document.getElementById("filter-plano");
       const mesSelect = document.getElementById("filter-exp-mes");
@@ -1309,30 +1319,29 @@
       });
     }
 
-    // ---------- Render ----------
-
+    // ---------- RENDER GERAL ----------
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
       const expFiltrada = getFilteredExperience();
+      const bnavFiltrada = getBnavForJornada(jornadaFiltrada);
 
-      buildKPIs(jornadaFiltrada, allPrest, allBnav);
+      buildKPIs(jornadaFiltrada, allPrest, bnavFiltrada);
       buildAvancoChart(jornadaFiltrada);
       buildChurnChart(jornadaFiltrada);
       buildPrestacaoChart(jornadaFiltrada, allPrest);
-      buildOportunidadesChart(allBnav);
+      buildOportunidadesChart(bnavFiltrada);
       buildExperienceSummary(expFiltrada);
-      buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
-      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
+      buildAttentionTable(jornadaFiltrada, allPrest, bnavFiltrada);
+      buildEncerradosTable(jornadaFiltrada, allPrest, bnavFiltrada);
     }
 
-    // ---------- Carregamento inicial ----------
-
+    // ---------- CARREGAMENTO INICIAL ----------
     async function loadAllData() {
       try {
         const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
           fetchCsv(URL_JORNADA),
           fetchCsv(URL_PRESTACAO),
-          fetchCsvBatalha(URL_BATALHA),
+          fetchBatalhaCsv(URL_BATALHA),
           fetchCsv(URL_EXPERIENCE)
         ]);
 
