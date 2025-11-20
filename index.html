@@ -615,6 +615,34 @@
         <tbody id="attention-body"></tbody>
       </table>
     </div>
+
+    <!-- NOVA SEÇÃO: Alunos encerrados / finalizados -->
+    <h2 class="section-title"><span class="icon"></span>Alunos encerrados / finalizados</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Base encerrada da jornada</div>
+          <div class="card-subtitle">
+            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído).
+            Clique no nome para ver detalhes no modal.
+          </div>
+        </div>
+        <span class="pill">Encerrados</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Status do plano</th>
+            <th>Avanço</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="encerrados-body"></tbody>
+      </table>
+    </div>
   </main>
 
   <!-- Modal individual do aluno -->
@@ -1146,6 +1174,96 @@
       });
     }
 
+    // NOVA TABELA: Encerrados
+    function buildEncerradosTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("encerrados-body");
+      if (!tbody) return;
+      tbody.innerHTML = "";
+
+      const prestPorCliente = {};
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+
+      const bnavPorCliente = {};
+      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
+
+      const rows = [];
+
+      jornadaData.forEach(j => {
+        const statusPlano = (j.statusPlano || "").toLowerCase();
+        if (!statusPlano) return;
+        if (
+          !(
+            statusPlano.includes("final") ||
+            statusPlano.includes("encerr") ||
+            statusPlano.includes("concl")
+          )
+        ) {
+          return;
+        }
+
+        const cliente = j.cliente;
+        const prest = prestPorCliente[cliente];
+        const bnav = bnavPorCliente[cliente];
+
+        const avanco = j.avancoPercent || 0;
+        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        rows.push({
+          cliente,
+          plano: j.plano,
+          statusPlano: j.statusPlano || "",
+          avanco,
+          prestacao: prestSit || "–",
+          oportunidade
+        });
+      });
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = "Nenhum aluno encerrado encontrado para os filtros atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdStatus = document.createElement("td");
+        tdStatus.textContent = r.statusPlano || "–";
+        tr.appendChild(tdStatus);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrest = document.createElement("td");
+        tdPrest.textContent = r.prestacao || "–";
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
+      });
+    }
+
     // Modal individual
     function openAlunoModal(nome) {
       const modalOverlay = document.getElementById("aluno-modal-overlay");
@@ -1260,6 +1378,7 @@
       buildOportunidadesChart(allBnav);
       buildExperienceSummary(expFiltrada);
       buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
+      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
     }
 
     // Carregar dados
