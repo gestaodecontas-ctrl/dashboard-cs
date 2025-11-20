@@ -170,3 +170,46 @@
       background: rgba(220, 53, 69, 0.14);
       color: #A32035;
     }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">
+        <h1>GO Educação – Dashboard CS</h1>
+        <span>Acompanhamento de jornada, engajamento e oportunidades</span>
+      </div>
+
+      <div class="topbar-badge">
+        <span class="topbar-dot"></span> Dados carregados do Google Sheets (CSV)
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div id="loading-global" class="loading">
+      Carregando dados das abas (Jornada, Prestação, Experience, Batalha Naval)...
+    </div>
+
+    <!-- KPIs -->
+    <h2 class="section-title"><span class="icon"></span>Visão Geral</h2>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Alunos ativos</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
+        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
+        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Taxa de sucesso da jornada</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
+        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
+        <div class="kpi-tag tag-ok">Conclusão da Trilha</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi
+
