@@ -209,7 +209,237 @@
         <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
         <div class="kpi-tag tag-ok">Conclusão da Trilha</div>
       </div>
+<script>
+/* ===============================
+   URLs das abas (CSV)
+================================*/
+const URL_JORNADA     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+const URL_PRESTACAO   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
+const URL_EXPERIENCE  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
+const URL_BATALHA     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+
+/* ===============================
+   Estado Global
+================================*/
+let allJornada = [];
+let allPrest = [];
+let allBnav = [];
+let allExp = [];
+
+/* Filtros selecionados pelo usuário */
+let currentPlanoFilter = "__all__";
+let currentExpMesFilter = "__all__";
+let currentExpEncontroFilter = "__all__";
+
+/* Instâncias dos gráficos */
+let chartAvanco      = null;
+let chartChurn       = null;
+let chartPrestacao   = null;
+let chartOportunidades = null;
+
+/* ===============================
+   Funções auxiliares
+================================*/
+
+/* Converte CSV para array de objetos */
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines.shift().split(",");
+
+  return lines.map((line) => {
+    const cols = line.split(",");
+    const obj = {};
+    header.forEach((h, i) => {
+      obj[h.trim()] = (cols[i] || "").trim();
+    });
+    return obj;
+  });
+}
+
+function parsePercentString(str) {
+  if (!str) return 0;
+  let clean = str.replace("%", "").replace(",", ".").trim();
+  let n = parseFloat(clean);
+  return isNaN(n) ? 0 : n;
+}
+
+function parseNumberBR(str) {
+  if (!str) return 0;
+  return Number(str.replace(/\./g, "").replace(",", ".").replace(/[^\d.-]/g, "")) || 0;
+}
+
+function formatPercent(v) {
+  return (v || 0).toFixed(1).replace(".", ",") + "%";
+}
+
+function formatCurrencyBRL(v) {
+  return (v || 0).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+/* ===============================
+   Fetch wrapper
+================================*/
+async function fetchCsv(url) {
+  const res = await fetch(url);
+  const txt = await res.text();
+  return parseCsv(txt);
+}
+
+/* ===============================
+   Normalização dos dados
+================================*/
+
+/* Jornada */
+function normalizeJornada(rows) {
+  if (!rows.length) return [];
+
+  const headers = Object.keys(rows[0]);
+
+  const hCliente = headers.find((h) => /cliente/i.test(h));
+  const hPlano = headers.find((h) => /plano/i.test(h));
+  const hAvanco = headers.find((h) => /avanç|avan|trilha|%/i.test(h));
+  const hPrazo = headers.find((h) => /prazo|cronograma|atras/i.test(h));
+  const hRisco = headers.find((h) => /churn|risco/i.test(h));
+  const hStatusPlano = headers.find((h) => /status.*plano/i.test(h));
+
+  return rows
+    .filter((r) => (r[hCliente] || "").trim() !== "")
+    .map((r) => ({
+      cliente: r[hCliente] || "",
+      plano: r[hPlano] || "",
+      avancoPercent: parsePercentString(r[hAvanco] || ""),
+      prazo: r[hPrazo] || "",
+      riscoChurn: r[hRisco] || "",
+      statusPlano: r[hStatusPlano] || "",
+    }));
+}
+
+/* Prestação de contas */
+function normalizePrestacao(rows) {
+  if (!rows.length) return [];
+  const headers = Object.keys(rows[0]);
+
+  const hCliente = headers.find((h) => /cliente/i.test(h));
+  const hSituacao = headers.find((h) => /situa/i.test(h));
+
+  return rows
+    .filter((r) => (r[hCliente] || "").trim() !== "")
+    .map((r) => ({
+      cliente: r[hCliente] || "",
+      situacaoAtual: r[hSituacao] || "",
+    }));
+}
+
+/* Batalha Naval */
+function normalizeBatalha(rows) {
+  if (!rows.length) return [];
+  const headers = Object.keys(rows[0]);
+
+  const hCliente = headers.find((h) => /aluno|cliente/i.test(h));
+  const hTotal = headers.find((h) => /total/i.test(h));
+
+  return rows
+    .filter((r) => (r[hCliente] || "").trim() !== "")
+    .map((r) => ({
+      cliente: r[hCliente] || "",
+      oportunidadeTotal: parseNumberBR(r[hTotal] || "0"),
+    }));
+}
+
+/* Let's Go Experience */
+function normalizeExperience(rows) {
+  if (!rows.length) return [];
+  const headers = Object.keys(rows[0]);
+
+  const hMes = headers.find((h) => /m[eê]s/i.test(h));
+  const hEncontro = headers.find((h) => /encontro/i.test(h));
+  const hAluno = headers.find((h) => /aluno|cliente/i.test(h));
+  const hStatus = headers.find((h) => /status/i.test(h));
+
+  return rows.map((r) => ({
+    mes: r[hMes] || "",
+    encontro: r[hEncontro] || "",
+    aluno: r[hAluno] || "",
+    status: r[hStatus] || "",
+  }));
+}
+
+/* ===============================
+   FILTROS
+================================*/
+
+function getFilteredJornada() {
+  if (currentPlanoFilter === "__all__") return allJornada;
+  return allJornada.filter(
+    (j) => j.plano.toLowerCase() === currentPlanoFilter.toLowerCase()
+  );
+}
+
+function getFilteredExperience() {
+  return allExp.filter((e) => {
+    let ok = true;
+    if (currentExpMesFilter !== "__all__") {
+      ok = ok && e.mes.toLowerCase() === currentExpMesFilter.toLowerCase();
+    }
+    if (currentExpEncontroFilter !== "__all__") {
+      ok = ok && e.encontro.toLowerCase() === currentExpEncontroFilter.toLowerCase();
+    }
+    return ok;
+  });
+}
+
+/* ===============================
+   KPIs
+================================*/
+function buildKPIs(jornada, prest, bnav) {
+  const total = jornada.length;
+
+  const concluidos = jornada.filter((j) =>
+    (j.statusPlano || "").toLowerCase().includes("final")
+  ).length;
+
+  const taxaSucesso = total ? (concluidos / total) * 100 : 0;
+
+  /* Prestação em dia */
+  const prestMap = {};
+  prest.forEach((p) => (prestMap[p.cliente] = p.situacaoAtual));
+
+  let emDia = 0;
+  jornada.forEach((j) => {
+    const s = prestMap[j.cliente]?.toLowerCase() || "";
+    if (s.includes("preenchido")) {
+      emDia++;
+    }
+  });
+
+  const taxaPrestacao = total ? (emDia / total) * 100 : 0;
+
+  /* Oportunidades */
+  const totalOportunidades = bnav.reduce(
+    (acc, cur) => acc + cur.oportunidadeTotal,
+    0
+  );
+
+  document.getElementById("kpi-total-alunos").textContent = total;
+  document.getElementById("kpi-total-alunos-extra").textContent =
+    `${concluidos} já finalizaram.`;
+
+  document.getElementById("kpi-taxasucesso").textContent =
+    formatPercent(taxaSucesso);
+  document.getElementById("kpi-taxasucesso-extra").textContent =
+    `Média geral da trilha.`;
+
+  document.getElementById("kpi-prestacao").textContent =
+    formatPercent(taxaPrestacao);
+  document.getElementById("kpi-prestacao-extra").textContent =
+    `${emDia} de ${total} em dia.`;
+
+  document.getElementById("kpi
 
       <div class="kpi-card">
         <div class="kpi
+
 
