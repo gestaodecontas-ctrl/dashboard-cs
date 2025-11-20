@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>GO Educação – Controle de Sucesso do Cliente</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr/npm/chart.js"></script>
   <style>
     :root {
       --cs-navy: #0A1A2F;
@@ -585,13 +585,13 @@
         <canvas id="chart-churn"></canvas>
         <div class="legend">
           <span class="legend-item">
-            <span class="legend-dot" style="background:#A32035;"></span> Alto risco
+            <span class="legend-dot" style="background:#CC3333;"></span> Alto risco
           </span>
           <span class="legend-item">
             <span class="legend-dot" style="background:#C8A300;"></span> Moderado / meio do caminho
           </span>
           <span class="legend-item">
-            <span class="legend-dot" style="background:#158152;"></span> Saudável
+            <span class="legend-dot" style="background:#2ECC71;"></span> Saudável / concluído
           </span>
         </div>
       </div>
@@ -613,7 +613,7 @@
             <span class="legend-dot" style="background:#158152;"></span> Em dia
           </span>
           <span class="legend-item">
-            <span class="legend-dot" style="background:#A32035;"></span> Não preenchido / atraso
+            <span class="legend-dot" style="background:#A32035;"></span> Não enviada / atraso
           </span>
         </div>
       </div>
@@ -721,8 +721,10 @@
     }
 
     function parsePercentString(s) {
-      if (! s) return null;
-      let v = s.toString().replace("%", "").replace(".", "").replace(",", ".");
+      if (!s) return null;
+      let v = s.toString().replace("%", "").trim();
+      v = v.replace(/[^\d.,-]/g, "");
+      v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? null : n;
     }
@@ -730,6 +732,9 @@
     function parseNumberBR(s) {
       if (!s) return 0;
       let v = s.toString().trim();
+      if (v === "") return 0;
+      // remove tudo que não é número, vírgula, ponto ou sinal
+      v = v.replace(/[^\d.,-]/g, "");
       if (v === "") return 0;
       v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
@@ -752,66 +757,78 @@
       return parseCsv(text);
     }
 
-    // Normalização
+    // Normalização com detecção flexível de colunas
     function normalizeJornada(rows) {
-      return rows
-        .filter(r => (r["Cliente"] || r["CLIENTE"] || "").trim() !== "")
-        .map(r => {
-          const cliente = r["Cliente"] || r["CLIENTE"] || "";
-          const plano = r["Plano"] || r["PLANO"] || "";
-          const status = r["Status"] || r["STATUS"] || "";
-          const statusPlano = r["Status do plano"] || r["STATUS DO PLANO"] || "";
-          const avancoStr = r["Avanço da trilha"] || r["AVANÇO DA TRILHA"] || "";
-          const avancoPercent = parsePercentString(avancoStr);
-          const prazo = r["Dentro do cronograma ou atraso"] || r["DENTRO DO CRONOGRAMA OU ATRASO"] || "";
-          const risco = r["Risco de Churn"] || r["RISCO DE CHURN"] || "";
-          const dataInicio = r["Data de Inicio"] || r["DATA DE INICIO"] || "";
-          const dataFim = r["Data de Finalização"] || r["DATA DE FINALIZAÇÃO"] || "";
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
 
+      const hCliente = headers.find(h => /cliente/i.test(h)) || headers[0];
+      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
+                           headers.find(h => /status do plano/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h) && h !== hStatusPlano) || "";
+      const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
+      const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
+      const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
+      const hDataInicio = headers.find(h => /data.*in[ií]cio/i.test(h)) || "";
+      const hDataFim = headers.find(h => /data.*final/i.test(h)) || "";
+
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => {
+          const avancoStr = hAvanco ? (r[hAvanco] || "") : "";
+          const avancoPercent = parsePercentString(avancoStr);
           return {
-            status,
-            plano,
-            cliente,
-            statusPlano,
+            status: hStatus ? (r[hStatus] || "") : "",
+            plano: hPlano ? (r[hPlano] || "") : "",
+            cliente: r[hCliente] || "",
+            statusPlano: hStatusPlano ? (r[hStatusPlano] || "") : "",
             avancoPercent: avancoPercent ?? 0,
-            prazo,
-            riscoChurn: risco,
-            dataInicio,
-            dataFim
+            prazo: hPrazo ? (r[hPrazo] || "") : "",
+            riscoChurn: hRisco ? (r[hRisco] || "") : "",
+            dataInicio: hDataInicio ? (r[hDataInicio] || "") : "",
+            dataFim: hDataFim ? (r[hDataFim] || "") : ""
           };
         });
     }
 
     function normalizePrestacao(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      const hCliente = headers.find(h => /cliente/i.test(h)) || headers[0];
+      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hSituacao = headers.find(h => /situa/i.test(h) && /atual/i.test(h)) ||
+                        headers.find(h => /situa/i.test(h)) || "";
+
       return rows
-        .filter(r => (r["CLIENTE"] || r["Cliente"] || "").trim() !== "")
-        .map(r => {
-          const cliente = r["CLIENTE"] || r["Cliente"] || "";
-          const plano = r["PLANO"] || r["Plano"] || "";
-          const situacao = r["Situação atual"] || r["SITUAÇÃO ATUAL"] || "";
-          return { cliente, plano, situacaoAtual: situacao, raw: r };
-        });
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => ({
+          cliente: r[hCliente] || "",
+          plano: hPlano ? (r[hPlano] || "") : "",
+          situacaoAtual: hSituacao ? (r[hSituacao] || "") : "",
+          raw: r
+        }));
     }
 
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
-      const headers = Object.keys(rows[0] || {});
-      const totalCol = headers.find(h => h.toLowerCase().includes("total"));
-      const alunoCol = headers.find(h => h.toLowerCase().includes("aluno") || h.toLowerCase().includes("cliente"));
-      const planoCol = headers.find(h => h.toLowerCase().includes("plano"));
-      const statusCol = headers.find(h => h.toLowerCase().includes("status"));
+      const headers = Object.keys(rows[0]);
+
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
+      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h)) || "";
+      const hTotal = headers.find(h => /total/i.test(h)) || "";
 
       return rows
-        .filter(r => (r[alunoCol] || "").trim() !== "")
+        .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
-          const cliente = r[alunoCol] || "";
-          const plano = planoCol ? (r[planoCol] || "") : "";
-          const status = statusCol ? (r[statusCol] || "") : "";
-          const total = totalCol ? parseNumberBR(r[totalCol]) : 0;
+          const totalRaw = hTotal ? (r[hTotal] || "") : "";
+          const total = parseNumberBR(totalRaw);
           return {
-            cliente,
-            plano,
-            status,
+            cliente: r[hAluno] || "",
+            plano: hPlano ? (r[hPlano] || "") : "",
+            status: hStatus ? (r[hStatus] || "") : "",
             oportunidadeTotal: total,
             raw: r
           };
@@ -820,15 +837,24 @@
 
     function normalizeExperience(rows) {
       if (!rows.length) return [];
-      return rows.map(r => {
-        const mes = r["MES"] || r["MÊS"] || r["Mes"] || "";
-        const encontro = r["ENCONTRO"] || r["Encontro"] || "";
-        const aluno = r["ALUNO"] || r["Aluno"] || "";
-        const abordagem = r["ABORDAGEM"] || r["Abordagem"] || "";
-        const status = r["STATUS"] || r["Status"] || "";
-        const grupo = r["GRUPO"] || r["Grupo"] || "";
-        return { mes, encontro, aluno, abordagem, status, grupo, raw: r };
-      });
+      const headers = Object.keys(rows[0]);
+
+      const hMes = headers.find(h => /m[eê]s/i.test(h)) || "";
+      const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || "";
+      const hAbordagem = headers.find(h => /abordagem/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h)) || "";
+      const hGrupo = headers.find(h => /grupo/i.test(h)) || "";
+
+      return rows.map(r => ({
+        mes: hMes ? (r[hMes] || "") : "",
+        encontro: hEncontro ? (r[hEncontro] || "") : "",
+        aluno: hAluno ? (r[hAluno] || "") : "",
+        abordagem: hAbordagem ? (r[hAbordagem] || "") : "",
+        status: hStatus ? (r[hStatus] || "") : "",
+        grupo: hGrupo ? (r[hGrupo] || "") : "",
+        raw: r
+      }));
     }
 
     // Filtros
@@ -852,9 +878,8 @@
 
     // KPIs
     function buildKPIs(jornadaData, prestData, bnavData) {
-      const ativos = jornadaData.filter(j => (j.status || "").toLowerCase().includes("ativo"));
-      const totalAlunos = ativos.length || jornadaData.length;
-      const concluidos = jornadaData.filter(j => (j.statusPlano || "").toLowerCase() === "finalizado").length;
+      const totalAlunos = jornadaData.length;
+      const concluidos = jornadaData.filter(j => (j.statusPlano || "").toLowerCase().includes("final")).length;
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
       const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
@@ -862,11 +887,18 @@
         ? mediasAvanco.reduce((a, b) => a + b, 0) / mediasAvanco.length
         : 0;
 
-      const totalPrestClientes = prestData.length;
-      const prestEmDia = prestData.filter(
-        p => (p.situacaoAtual || "").toLowerCase().includes("preenchido")
-      ).length;
-      const taxaPrestacao = totalPrestClientes > 0 ? (prestEmDia / totalPrestClientes) * 100 : 0;
+      // Prestação em dia baseado no total de alunos da Jornada
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[p.cliente] = p;
+      });
+      let prestEmDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[j.cliente];
+        const sit = p ? (p.situacaoAtual || "").toLowerCase() : "";
+        if (sit.includes("preenchido")) prestEmDia++;
+      });
+      const taxaPrestacao = totalAlunos > 0 ? (prestEmDia / totalAlunos) * 100 : 0;
 
       const totalOportunidades = bnavData.reduce(
         (acc, cur) => acc + (cur.oportunidadeTotal || 0),
@@ -884,7 +916,7 @@
 
       document.getElementById("kpi-prestacao").textContent = formatPercent(taxaPrestacao);
       document.getElementById("kpi-prestacao-extra").textContent =
-        `${prestEmDia} de ${totalPrestClientes} alunos com prestação em dia.`;
+        `${prestEmDia} de ${totalAlunos} aluno(s) com prestação em dia.`;
 
       document.getElementById("kpi-oportunidades").textContent =
         formatCurrencyBRL(totalOportunidades);
@@ -960,9 +992,12 @@
       const data = Object.values(riskCounts);
 
       const colors = labels.map(label => {
-        if (label.includes("Alto")) return "#A32035";
-        if (label.includes("Moderado")) return "#C8A300";
-        if (label.includes("Saudável")) return "#158152";
+        const lower = label.toLowerCase();
+        if (lower.includes("alto")) return "#CC3333";
+        if (lower.includes("moderado")) return "#C8A300";
+        if (lower.includes("saud")) return "#2ECC71";
+        if (lower.includes("concl")) return "#1F73B7";
+        if (lower.includes("meio")) return "#8FA9C9";
         return "#0A1A2F";
       });
 
@@ -990,23 +1025,30 @@
       });
     }
 
-    function buildPrestacaoChart(prestData) {
+    function buildPrestacaoChart(jornadaData, prestData) {
       const ctx = document.getElementById("chart-prestacao").getContext("2d");
       if (chartPrestacao) chartPrestacao.destroy();
 
-      const total = prestData.length;
-      const emDia = prestData.filter(
-        p => (p.situacaoAtual || "").toLowerCase().includes("preenchido")
-      ).length;
-      const naoPreenchido = Math.max(total - emDia, 0);
+      const totalAlunos = jornadaData.length;
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[p.cliente] = p;
+      });
+      let emDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[j.cliente];
+        const sit = p ? (p.situacaoAtual || "").toLowerCase() : "";
+        if (sit.includes("preenchido")) emDia++;
+      });
+      const nao = Math.max(totalAlunos - emDia, 0);
 
       chartPrestacao = new Chart(ctx, {
         type: "doughnut",
         data: {
-          labels: ["Em dia", "Não preenchido / atraso"],
+          labels: ["Em dia", "Não enviada / atraso"],
           datasets: [
             {
-              data: [emDia, naoPreenchido],
+              data: [emDia, nao],
               backgroundColor: ["#158152", "#A32035"],
               borderWidth: 1
             }
@@ -1245,7 +1287,7 @@
         riskSpan.className = "chip";
         if (r.risco.includes("Alto")) riskSpan.classList.add("chip-risk-alto");
         else if (r.risco.includes("Saudável")) riskSpan.classList.add("chip-risk-saudavel");
-        else if (r.risco.includes("Moderado")) riskSpan.classList.add("chip-risk-moderado");
+        else if (r.risco.includes("Moderado") || r.risco.includes("Meio")) riskSpan.classList.add("chip-risk-moderado");
         riskSpan.textContent = r.risco || "–";
         tdRisco.appendChild(riskSpan);
         tr.appendChild(tdRisco);
@@ -1333,7 +1375,7 @@
             <h3>Oportunidades (Batalha Naval)</h3>
             <p><strong>Potencial mapeado:</strong> ${formatCurrencyBRL(oportunidade)}</p>
             <p style="font-size:11px;color:#7A8194;">
-              Este valor soma os produtos marcados como oportunidade para este aluno.
+              Este valor soma os produtos marcados como oportunidade para este aluno (coluna Total da aba Batalha Naval).
             </p>
           </div>
         </div>
@@ -1423,7 +1465,7 @@
       buildKPIs(jornadaFiltrada, allPrest, allBnav);
       buildAvancoChart(jornadaFiltrada);
       buildChurnChart(jornadaFiltrada);
-      buildPrestacaoChart(allPrest);
+      buildPrestacaoChart(jornadaFiltrada, allPrest);
       buildOportunidadesChart(allBnav);
       buildExperienceSummary(expFiltrada);
       buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
