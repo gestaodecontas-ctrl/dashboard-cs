@@ -627,13 +627,24 @@
       return isNaN(n) ? 0 : n;
     }
 
+    // NOVA VERSÃO ROBUSTA – números BR (R$ 20.300,00 -> 20300)
     function parseNumberBR(s) {
       if (!s) return 0;
-      let v = s.toString();
-      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      let v = s.toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      // deixa só números, vírgula, ponto e sinal
       v = v.replace(/[^0-9,.-]+/g, "");
       if (!v) return 0;
-      v = v.replace(/\./g, "").replace(",", ".");
+
+      // remove pontos de milhar: 20.300,00 -> 20300,00
+      v = v.replace(/\.(?=\d{3}(\D|$))/g, "");
+
+      // vírgula vira ponto decimal: 20300,00 -> 20300.00
+      v = v.replace(",", ".");
+
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -698,16 +709,27 @@
         }));
     }
 
+    // Batalha Naval – usa explicitamente "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
-      const hTotal = headers.find(h => /total/i.test(h)) || "";
+
+      // coluna do aluno / cliente
+      const hAluno =
+        headers.find(h => /aluno|cliente|oportunidade de vendas/i.test(h)) || headers[0];
+
+      // coluna de valor total por aluno
+      let hTotal = headers.find(h =>
+        normalizeStr(h).includes("oportunidade total por aluno")
+      );
+      if (!hTotal) {
+        hTotal = headers.find(h => /total/i.test(h)) || headers[headers.length - 1];
+      }
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
-          const totalRaw = hTotal ? (r[hTotal] || "") : "";
+          const totalRaw = r[hTotal] || "";
           const total = parseNumberBR(totalRaw);
           return {
             cliente: r[hAluno] || "",
@@ -1011,7 +1033,6 @@
 
         const riscoNorm = normalizeStr(risco);
         const prazoNorm = normalizeStr(prazo);
-        const prestNorm = normalizeStr(prestSit);
 
         const riscoCritico = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
         const atrasoTrilha = prazoNorm.includes("atras");
