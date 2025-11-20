@@ -170,7 +170,7 @@
       background: rgba(220, 53, 69, 0.14);
       color: #A32035;
     }
-  </style>
+</style>
 </head>
 
 <body>
@@ -209,6 +209,149 @@
         <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
         <div class="kpi-tag tag-ok">Conclusão da Trilha</div>
       </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
+        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
+        <div class="kpi-tag tag-warning">Envio dos dados mensais</div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-label">Potencial de oportunidades</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
+        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
+        <div class="kpi-tag tag-risk">Upsell / Renovação</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-row" style="margin-top: 22px;">
+      <div class="filter-group">
+        <label for="filter-plano">Plano (Jornada)</label>
+        <select id="filter-plano">
+          <option value="__all__">Todos os planos</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-exp-mes">Mês (Experience)</label>
+        <select id="filter-exp-mes">
+          <option value="__all__">Todos os meses</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="filter-exp-encontro">Encontro (Experience)</label>
+        <select id="filter-exp-encontro">
+          <option value="__all__">Todos os encontros</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gráficos principais -->
+    <div class="layout-two">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Avanço da jornada por aluno</div>
+            <div class="card-subtitle">Percentual de conclusão baseado na trilha.</div>
+          </div>
+          <span class="pill">Jornada</span>
+        </div>
+
+        <canvas id="chart-avanco"></canvas>
+
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background: var(--cs-blue);"></span>
+            Avanço individual (%)
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">Análise de saúde da base.</div>
+          </div>
+          <span class="pill">Churn</span>
+        </div>
+
+        <canvas id="chart-churn"></canvas>
+      </div>
+    </div>
+
+    <!-- Linha 2 -->
+    <div class="layout-three" style="margin-top: 24px;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">Envios mensais dos dados financeiros</div>
+          </div>
+          <span class="pill">Financeiro</span>
+        </div>
+
+        <canvas id="chart-prestacao"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Oportunidades – Batalha Naval</div>
+            <div class="card-subtitle">Valor potencial por aluno</div>
+          </div>
+          <span class="pill">Oportunidades</span>
+        </div>
+
+        <canvas id="chart-oportunidades"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Engajamento – Let's GO Experience</div>
+            <div class="card-subtitle">Participações, confirmações e interações</div>
+          </div>
+          <span class="pill">Experience</span>
+        </div>
+
+        <div id="experience-summary" style="font-size: 12px; color: #444;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela alunos que precisam de atenção -->
+    <h2 class="section-title"><span class="icon"></span>Alunos em Atenção</h2>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Mapa de Risco + Oportunidades</div>
+          <div class="card-subtitle">
+            Clique no nome do aluno para abrir o painel individual
+          </div>
+        </div>
+        <span class="pill">Prioridade</span>
+      </div>
+
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Avanço</th>
+            <th>Prazo</th>
+            <th>Risco</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+
+        <tbody id="attention-body"></tbody>
+      </table>
+    </div>
 <script>
 /* ===============================
    URLs das abas (CSV)
@@ -437,9 +580,415 @@ function buildKPIs(jornada, prest, bnav) {
   document.getElementById("kpi-prestacao-extra").textContent =
     `${emDia} de ${total} em dia.`;
 
-  document.getElementById("kpi
+  document.getElementById("kpi-oportunidades").textContent =
+    formatCurrencyBRL(totalOportunidades);
+  document.getElementById("kpi-oportunidades-extra").textContent =
+    `Baseado em SIMs da Batalha Naval.`;
+}
 
-      <div class="kpi-card">
-        <div class="kpi
+/* ===============================
+   GRÁFICOS
+================================*/
 
+function buildAvancoChart(jornada) {
+  const ctx = document.getElementById("chart-avanco").getContext("2d");
+  if (chartAvanco) chartAvanco.destroy();
 
+  chartAvanco = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: jornada.map((j) => j.cliente),
+      datasets: [
+        {
+          label: "Avanço (%)",
+          data: jornada.map((j) => j.avancoPercent),
+          backgroundColor: "rgba(31, 115, 183, .8)",
+          borderColor: "#1F73B7",
+          borderWidth: 1,
+          borderRadius: 8,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          max: 100,
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => v + "%",
+          },
+        },
+      },
+    },
+  });
+}
+
+function buildChurnChart(jornada) {
+  const ctx = document.getElementById("chart-churn").getContext("2d");
+  if (chartChurn) chartChurn.destroy();
+
+  const counts = {};
+  jornada.forEach((j) => {
+    counts[j.riscoChurn] = (counts[j.riscoChurn] || 0) + 1;
+  });
+
+  const labels = Object.keys(counts);
+  const data = Object.values(counts);
+
+  const colors = labels.map((l) => {
+    l = l.toLowerCase();
+    if (l.includes("alto")) return "#CC3333";
+    if (l.includes("moderado")) return "#C8A300";
+    if (l.includes("saud")) return "#2ECC71";
+    if (l.includes("concl")) return "#1F73B7";
+    return "#0A1A2F";
+  });
+
+  chartChurn = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [
+        {
+          data,
+          backgroundColor: colors,
+        },
+      ],
+    },
+    options: {
+      cutout: "55%",
+      plugins: { legend: { position: "bottom" } },
+    },
+  });
+}
+
+function buildPrestacaoChart(jornada, prest) {
+  const ctx = document.getElementById("chart-prestacao").getContext("2d");
+  if (chartPrestacao) chartPrestacao.destroy();
+
+  const prestMap = {};
+  prest.forEach((p) => (prestMap[p.cliente] = p.situacaoAtual));
+
+  let emDia = 0;
+  jornada.forEach((j) => {
+    const s = prestMap[j.cliente]?.toLowerCase() || "";
+    if (s.includes("preenchido")) emDia++;
+  });
+
+  const nao = jornada.length - emDia;
+
+  chartPrestacao = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Em dia", "Em atraso"],
+      datasets: [
+        {
+          data: [emDia, nao],
+          backgroundColor: ["#158152", "#A32035"],
+        },
+      ],
+    },
+    options: {
+      cutout: "55%",
+      plugins: { legend: { position: "bottom" } },
+    },
+  });
+}
+
+function buildOportunidadesChart(bnav) {
+  const ctx = document.getElementById("chart-oportunidades").getContext("2d");
+  if (chartOportunidades) chartOportunidades.destroy();
+
+  const alunosComOp = bnav.filter((b) => b.oportunidadeTotal > 0);
+
+  chartOportunidades = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: alunosComOp.map((b) => b.cliente),
+      datasets: [
+        {
+          label: "Oportunidade (R$)",
+          data: alunosComOp.map((b) => b.oportunidadeTotal),
+          backgroundColor: "rgba(200, 163, 0, .75)",
+          borderColor: "#C8A300",
+          borderRadius: 8,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: (v) => formatCurrencyBRL(v),
+          },
+        },
+      },
+    },
+  });
+}
+</script>
+<script>
+/* ===============================
+   EXPERIENCE SUMMARY
+================================*/
+function buildExperienceSummary(expData) {
+  const container = document.getElementById("experience-summary");
+
+  if (!expData.length) {
+    container.innerHTML = "Nenhum dado para os filtros selecionados.";
+    return;
+  }
+
+  const total = expData.length;
+  const confirmados = expData.filter((e) =>
+    (e.status || "").toLowerCase().includes("confirm")
+  ).length;
+
+  container.innerHTML = `
+    <p><strong>${total}</strong> registros encontrados.</p>
+    <p><strong>${confirmados}</strong> confirmações de presença.</p>
+  `;
+}
+
+/* ===============================
+   TABELA DE ATENÇÃO
+================================*/
+function buildAttentionTable(jornada, prest, bnav) {
+  const tbody = document.getElementById("attention-body");
+  tbody.innerHTML = "";
+
+  const prestMap = {};
+  prest.forEach((p) => (prestMap[p.cliente] = p.situacaoAtual));
+
+  const bnavMap = {};
+  bnav.forEach((b) => (bnavMap[b.cliente] = b.oportunidadeTotal));
+
+  jornada.forEach((j) => {
+    const cliente = j.cliente;
+    const prestacao = prestMap[cliente] || "";
+    const oportunidade = bnavMap[cliente] || 0;
+    const atrasado =
+      (prestacao || "").toLowerCase().includes("não") ||
+      (prestacao || "").toLowerCase().includes("⚠️");
+    const risco = j.riscoChurn.toLowerCase();
+
+    const precisaAtencao =
+      risco.includes("alto") ||
+      risco.includes("moderado") ||
+      j.avancoPercent < 50 ||
+      atrasado ||
+      oportunidade > 0;
+
+    if (!precisaAtencao) return;
+
+    const tr = document.createElement("tr");
+
+    /* Nome clicável (abre modal) */
+    const tdCliente = document.createElement("td");
+    tdCliente.textContent = cliente;
+    tdCliente.classList.add("link-cliente");
+    tdCliente.addEventListener("click", () => openAlunoModal(cliente));
+    tr.appendChild(tdCliente);
+
+    /* Plano */
+    const tdPlano = document.createElement("td");
+    tdPlano.textContent = j.plano;
+    tr.appendChild(tdPlano);
+
+    /* Avanço */
+    const tdAvanco = document.createElement("td");
+    tdAvanco.textContent = formatPercent(j.avancoPercent);
+    tr.appendChild(tdAvanco);
+
+    /* Prazo */
+    const tdPrazo = document.createElement("td");
+    tdPrazo.textContent = j.prazo || "–";
+    tr.appendChild(tdPrazo);
+
+    /* Risco */
+    const tdRisco = document.createElement("td");
+    tdRisco.textContent = j.riscoChurn;
+    tr.appendChild(tdRisco);
+
+    /* Prestação */
+    const tdPrest = document.createElement("td");
+    tdPrest.textContent = prestacao || "–";
+    tr.appendChild(tdPrest);
+
+    /* Oportunidade */
+    const tdOp = document.createElement("td");
+    tdOp.textContent = oportunidade > 0 ? formatCurrencyBRL(oportunidade) : "–";
+    tr.appendChild(tdOp);
+
+    tbody.appendChild(tr);
+  });
+}
+
+/* ===============================
+   MODAL INDIVIDUAL
+================================*/
+function openAlunoModal(cliente) {
+  const modalOverlay = document.getElementById("aluno-modal-overlay");
+  const modalContent = document.getElementById("modal-content");
+
+  const j = allJornada.find((x) => x.cliente === cliente);
+  const prest = allPrest.find((x) => x.cliente === cliente);
+  const bnav = allBnav.find((x) => x.cliente === cliente);
+  const expList = allExp.filter((x) => x.aluno === cliente);
+
+  modalContent.innerHTML = `
+    <div class="modal-header">
+      <h2>${cliente}</h2>
+      <span>${j ? j.plano : "Sem plano"}</span>
+    </div>
+
+    <div class="modal-grid">
+      <div class="modal-block">
+        <h3>Jornada</h3>
+        <p><strong>Avanço:</strong> ${formatPercent(j.avancoPercent)}</p>
+        <p><strong>Prazo:</strong> ${j.prazo}</p>
+        <p><strong>Risco:</strong> ${j.riscoChurn}</p>
+      </div>
+
+      <div class="modal-block">
+        <h3>Prestação</h3>
+        <p><strong>Situação atual:</strong> ${
+          prest ? prest.situacaoAtual : "–"
+        }</p>
+      </div>
+    </div>
+
+    <div class="modal-grid" style="margin-top: 8px;">
+      <div class="modal-block">
+        <h3>Oportunidades (Batalha Naval)</h3>
+        <p><strong>Total:</strong> ${
+          bnav ? formatCurrencyBRL(bnav.oportunidadeTotal) : "R$ 0,00"
+        }</p>
+      </div>
+
+      <div class="modal-block">
+        <h3>Let's GO Experience</h3>
+        <p><strong>Registros:</strong> ${expList.length}</p>
+        <p><strong>Confirmados:</strong> ${
+          expList.filter((x) =>
+            (x.status || "").toLowerCase().includes("confirm")
+          ).length
+        }</p>
+      </div>
+    </div>
+  `;
+
+  modalOverlay.classList.remove("hidden");
+}
+
+/* Fechar o modal */
+document.getElementById("modal-close-btn").addEventListener("click", () => {
+  document.getElementById("aluno-modal-overlay").classList.add("hidden");
+});
+
+/* ===============================
+   RENDERIZAÇÃO COMPLETA
+================================*/
+function renderAll() {
+  const jornadaFiltrada = getFilteredJornada();
+  const expFiltrada = getFilteredExperience();
+
+  buildKPIs(jornadaFiltrada, allPrest, allBnav);
+  buildAvancoChart(jornadaFiltrada);
+  buildChurnChart(jornadaFiltrada);
+  buildPrestacaoChart(jornadaFiltrada, allPrest);
+  buildOportunidadesChart(allBnav);
+  buildExperienceSummary(expFiltrada);
+  buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
+}
+
+/* ===============================
+   CARREGAMENTO INICIAL
+================================*/
+async function loadAllData() {
+  try {
+    const [jornadaRows, prestRows, expRows, batalhaRows] = await Promise.all([
+      fetchCsv(URL_JORNADA),
+      fetchCsv(URL_PRESTACAO),
+      fetchCsv(URL_EXPERIENCE),
+      fetchCsv(URL_BATALHA),
+    ]);
+
+    allJornada = normalizeJornada(jornadaRows);
+    allPrest = normalizePrestacao(prestRows);
+    allExp = normalizeExperience(expRows);
+    allBnav = normalizeBatalha(batalhaRows);
+
+    document.getElementById("loading-global").textContent =
+      "Dados carregados com sucesso.";
+
+    initFilters();
+    renderAll();
+  } catch (err) {
+    console.error("Erro ao carregar dados:", err);
+    document.getElementById("loading-global").textContent =
+      "ERRO: Verifique se as abas estão publicadas como CSV.";
+  }
+}
+
+/* ===============================
+   INICIALIZA FILTROS
+================================*/
+function initFilters() {
+  const planos = [...new Set(allJornada.map((j) => j.plano))].filter(Boolean);
+  const meses = [...new Set(allExp.map((e) => e.mes))].filter(Boolean);
+  const encontros = [...new Set(allExp.map((e) => e.encontro))].filter(Boolean);
+
+  const fPlano = document.getElementById("filter-plano");
+  planos.forEach((p) => {
+    const opt = document.createElement("option");
+    opt.value = p;
+    opt.textContent = p;
+    fPlano.appendChild(opt);
+  });
+
+  fPlano.addEventListener("change", () => {
+    currentPlanoFilter = fPlano.value;
+    renderAll();
+  });
+
+  const fMes = document.getElementById("filter-exp-mes");
+  meses.forEach((m) => {
+    const opt = document.createElement("option");
+    opt.value = m;
+    opt.textContent = m;
+    fMes.appendChild(opt);
+  });
+
+  fMes.addEventListener("change", () => {
+    currentExpMesFilter = fMes.value;
+    renderAll();
+  });
+
+  const fEncontro = document.getElementById("filter-exp-encontro");
+  encontros.forEach((e) => {
+    const opt = document.createElement("option");
+    opt.value = e;
+    opt.textContent = e;
+    fEncontro.appendChild(opt);
+  });
+
+  fEncontro.addEventListener("change", () => {
+    currentExpEncontroFilter = fEncontro.value;
+    renderAll();
+  });
+}
+
+/* ===============================
+   START
+================================*/
+loadAllData();
+</script>
+
+</body>
+</html>
