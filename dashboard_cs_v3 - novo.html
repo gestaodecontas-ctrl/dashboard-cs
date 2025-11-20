@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>GO Educação – Controle de Sucesso do Cliente</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --cs-navy: #0A1A2F;
+      --cs-blue: #1F73B7;
+      --cs-yellow: #C8A300;
+      --cs-black: #000000;
+      --cs-white: #FFFFFF;
+      --cs-bg: #F5F6FA;
+      --cs-gray: #E3E6ED;
+    }
+
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--cs-bg);
+      color: var(--cs-black);
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue));
+      color: var(--cs-white);
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .topbar-title span {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .topbar-badge {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #20c997;
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
+
+    .loading {
+      font-size: 13px;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 10px;
+      color: var(--cs-navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title span.icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--cs-yellow);
+      display: inline-block;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--cs-white);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cs-black);
+    }
+
+    .kpi-extra {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .kpi-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      align-self: flex-start;
+    }
+
+    .tag-ok {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
+    }
+
+    .tag-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #947000;
+    }
+
+    .tag-risk {
+      background: rgba(220, 53, 69, 0.14);
+      color: #A32035;
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 14px 0 4px;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+
+    .filter-group label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
+    }
+
+    .filter-group select {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #D0D4E4;
+      font-size: 12px;
+      background: #FFF;
+      min-width: 160px;
+    }
+
+    .layout-two {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .layout-three {
+      display: grid;
+      grid-template-columns: 1.5fr 1.5fr 1.3fr;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    .card {
+      background: var(--cs-white);
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cs-navy);
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .pill {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #F4F5FA;
+      color: #555;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .attention-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .attention-table th,
+    .attention-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid #E3E6ED;
+      text-align: left;
+    }
+
+    .attention-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A8194;
+    }
+
+    .tag-status {
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: #F1F3FA;
+      display: inline-block;
+    }
+
+    .tag-atrasado {
+      background: rgba(220, 53, 69, 0.12);
+      color: #A32035;
+    }
+
+    .tag-prazo {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
+    }
+
+    .tag-meio {
+      background: rgba(255, 193, 7, 0.16);
+      color: #947000;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 2px 8px;
+    }
+
+    .chip-risk-alto {
+      background: rgba(220, 53, 69, 0.12);
+      color: #A32035;
+    }
+
+    .chip-risk-moderado {
+      background: rgba(255, 193, 7, 0.16);
+      color: #947000;
+    }
+
+    .chip-risk-saudavel {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
+    }
+
+    .chip-op {
+      background: rgba(26, 115, 232, 0.12);
+      color: #1450A3;
+    }
+
+    .legend {
+      margin-top: 4px;
+      font-size: 10px;
+      color: #7A8194;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .link-cliente {
+      cursor: pointer;
+      color: var(--cs-blue);
+      text-decoration: underline;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .layout-two {
+        grid-template-columns: 1fr;
+      }
+      .layout-three {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 720px;
+      width: 95%;
+      max-height: 90vh;
+      padding: 16px 18px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-header {
+      margin-bottom: 10px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--cs-navy);
+    }
+
+    .modal-header span {
+      font-size: 12px;
+      color: #7A8194;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1.2fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .modal-block {
+      background: #F7F8FD;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .modal-block h3 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: var(--cs-navy);
+    }
+
+    .health-score {
+      font-size: 26px;
+      font-weight: 600;
+    }
+
+    .health-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      display: inline-block;
+      margin-top: 2px;
+    }
+
+    .hs-alta {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
+    }
+
+    .hs-media {
+      background: rgba(255, 193, 7, 0.15);
+      color: #947000;
+    }
+
+    .hs-baixa {
+      background: rgba(220, 53, 69, 0.14);
+      color: #A32035;
+    }
+
+    .modal-list {
+      padding-left: 16px;
+      margin: 4px 0;
+    }
+
+    .modal-list li {
+      margin-bottom: 2px;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">
+        <h1>GO Educação – Controle de Sucesso do Cliente</h1>
+        <span>Acompanhamento da jornada, prestação de contas, oportunidades e risco de churn.</span>
+      </div>
+      <div class="topbar-badge">
+        <span class="topbar-dot"></span>
+        Dados carregados diretamente do Google Sheets
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <div id="loading-global" class="loading">
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
+    </div>
+
+    <!-- KPIs -->
+    <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Alunos ativos</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
+        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
+        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Taxa de sucesso da jornada</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
+        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
+        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
+        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
+        <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Potencial de upsell / renovação</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
+        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
+        <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="filter-plano">Plano (Jornada)</label>
+        <select id="filter-plano">
+          <option value="__all__">Todos os planos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-mes">Mês (Experience)</label>
+        <select id="filter-exp-mes">
+          <option value="__all__">Todos os meses</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-encontro">Encontro (Experience)</label>
+        <select id="filter-exp-encontro">
+          <option value="__all__">Todos os encontros</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gráficos principais -->
+    <div class="layout-two">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Avanço da jornada por aluno</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano).</div>
+          </div>
+          <span class="pill">Jornada do aluno</span>
+        </div>
+        <canvas id="chart-avanco"></canvas>
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background: var(--cs-blue);"></span>
+            Avanço individual (%)
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">Saúde da base vs. necessidade de intervenção do CS.</div>
+          </div>
+          <span class="pill">Risco de churn</span>
+        </div>
+        <canvas id="chart-churn"></canvas>
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#A32035;"></span> Alto risco
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#C8A300;"></span> Moderado / meio do caminho
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#158152;"></span> Saudável
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Segunda linha -->
+    <div class="layout-three">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">Situação atual do envio de dados financeiros.</div>
+          </div>
+          <span class="pill">Prestação de contas</span>
+        </div>
+        <canvas id="chart-prestacao"></canvas>
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#158152;"></span> Em dia
+          </span>
+          <span class="legend-item">
+            <span class="legend-dot" style="background:#A32035;"></span> Não preenchido / atraso
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Oportunidades – Batalha Naval</div>
+            <div class="card-subtitle">Valor potencial de novos produtos / renovações por aluno.</div>
+          </div>
+          <span class="pill">Upsell & Renovação</span>
+        </div>
+        <canvas id="chart-oportunidades"></canvas>
+        <div class="legend">
+          <span class="legend-item">
+            <span class="legend-dot" style="background:var(--cs-yellow);"></span> Oportunidade potencial (R$)
+          </span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Engajamento – Let's GO Experience</div>
+            <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
+          </div>
+          <span class="pill">Experience</span>
+        </div>
+        <div id="experience-summary" style="font-size:12px;color:#444;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela de atenção -->
+    <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenção do CS</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Mapa de risco e oportunidade</div>
+          <div class="card-subtitle">
+            Clique no nome do cliente para abrir a visão individual (modal).
+          </div>
+        </div>
+        <span class="pill">Prioridade de ação</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Avanço</th>
+            <th>Prazo</th>
+            <th>Risco</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="attention-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal individual do aluno -->
+  <div id="aluno-modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <script>
+    // URLs CSV das abas
+    const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+    const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
+    const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
+    const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+
+    // Estado global
+    let allJornada = [];
+    let allPrest = [];
+    let allBnav = [];
+    let allExp = [];
+
+    let currentPlanoFilter = "__all__";
+    let currentExpMesFilter = "__all__";
+    let currentExpEncontroFilter = "__all__";
+
+    let chartAvanco = null;
+    let chartChurn = null;
+    let chartPrestacao = null;
+    let chartOportunidades = null;
+
+    // Helpers
+    function parseCsv(text) {
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+      const headers = lines[0].split(",").map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (cols[i] || "").trim();
+        });
+        return obj;
+      });
+    }
+
+    function parsePercentString(s) {
+      if (! s) return null;
+      let v = s.toString().replace("%", "").replace(".", "").replace(",", ".");
+      const n = parseFloat(v);
+      return isNaN(n) ? null : n;
+    }
+
+    function parseNumberBR(s) {
+      if (!s) return 0;
+      let v = s.toString().trim();
+      if (v === "") return 0;
+      v = v.replace(/\./g, "").replace(",", ".");
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatPercent(num) {
+      if (num == null || isNaN(num)) return "-";
+      return num.toFixed(1).replace(".", ",") + "%";
+    }
+
+    function formatCurrencyBRL(num) {
+      if (num == null || isNaN(num)) return "R$ 0,00";
+      return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    async function fetchCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      return parseCsv(text);
+    }
+
+    // Normalização
+    function normalizeJornada(rows) {
+      return rows
+        .filter(r => (r["Cliente"] || r["CLIENTE"] || "").trim() !== "")
+        .map(r => {
+          const cliente = r["Cliente"] || r["CLIENTE"] || "";
+          const plano = r["Plano"] || r["PLANO"] || "";
+          const status = r["Status"] || r["STATUS"] || "";
+          const statusPlano = r["Status do plano"] || r["STATUS DO PLANO"] || "";
+          const avancoStr = r["Avanço da trilha"] || r["AVANÇO DA TRILHA"] || "";
+          const avancoPercent = parsePercentString(avancoStr);
+          const prazo = r["Dentro do cronograma ou atraso"] || r["DENTRO DO CRONOGRAMA OU ATRASO"] || "";
+          const risco = r["Risco de Churn"] || r["RISCO DE CHURN"] || "";
+          const dataInicio = r["Data de Inicio"] || r["DATA DE INICIO"] || "";
+          const dataFim = r["Data de Finalização"] || r["DATA DE FINALIZAÇÃO"] || "";
+
+          return {
+            status,
+            plano,
+            cliente,
+            statusPlano,
+            avancoPercent: avancoPercent ?? 0,
+            prazo,
+            riscoChurn: risco,
+            dataInicio,
+            dataFim
+          };
+        });
+    }
+
+    function normalizePrestacao(rows) {
+      return rows
+        .filter(r => (r["CLIENTE"] || r["Cliente"] || "").trim() !== "")
+        .map(r => {
+          const cliente = r["CLIENTE"] || r["Cliente"] || "";
+          const plano = r["PLANO"] || r["Plano"] || "";
+          const situacao = r["Situação atual"] || r["SITUAÇÃO ATUAL"] || "";
+          return { cliente, plano, situacaoAtual: situacao, raw: r };
+        });
+    }
+
+    function normalizeBatalha(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0] || {});
+      const totalCol = headers.find(h => h.toLowerCase().includes("total"));
+      const alunoCol = headers.find(h => h.toLowerCase().includes("aluno") || h.toLowerCase().includes("cliente"));
+      const planoCol = headers.find(h => h.toLowerCase().includes("plano"));
+      const statusCol = headers.find(h => h.toLowerCase().includes("status"));
+
+      return rows
+        .filter(r => (r[alunoCol] || "").trim() !== "")
+        .map(r => {
+          const cliente = r[alunoCol] || "";
+          const plano = planoCol ? (r[planoCol] || "") : "";
+          const status = statusCol ? (r[statusCol] || "") : "";
+          const total = totalCol ? parseNumberBR(r[totalCol]) : 0;
+          return {
+            cliente,
+            plano,
+            status,
+            oportunidadeTotal: total,
+            raw: r
+          };
+        });
+    }
+
+    function normalizeExperience(rows) {
+      if (!rows.length) return [];
+      return rows.map(r => {
+        const mes = r["MES"] || r["MÊS"] || r["Mes"] || "";
+        const encontro = r["ENCONTRO"] || r["Encontro"] || "";
+        const aluno = r["ALUNO"] || r["Aluno"] || "";
+        const abordagem = r["ABORDAGEM"] || r["Abordagem"] || "";
+        const status = r["STATUS"] || r["Status"] || "";
+        const grupo = r["GRUPO"] || r["Grupo"] || "";
+        return { mes, encontro, aluno, abordagem, status, grupo, raw: r };
+      });
+    }
+
+    // Filtros
+    function getFilteredJornada() {
+      if (currentPlanoFilter === "__all__") return allJornada;
+      return allJornada.filter(j => (j.plano || "").toLowerCase() === currentPlanoFilter.toLowerCase());
+    }
+
+    function getFilteredExperience() {
+      return allExp.filter(e => {
+        let ok = true;
+        if (currentExpMesFilter !== "__all__") {
+          ok = ok && (e.mes || "").toLowerCase() === currentExpMesFilter.toLowerCase();
+        }
+        if (currentExpEncontroFilter !== "__all__") {
+          ok = ok && (e.encontro || "").toLowerCase() === currentExpEncontroFilter.toLowerCase();
+        }
+        return ok;
+      });
+    }
+
+    // KPIs
+    function buildKPIs(jornadaData, prestData, bnavData) {
+      const ativos = jornadaData.filter(j => (j.status || "").toLowerCase().includes("ativo"));
+      const totalAlunos = ativos.length || jornadaData.length;
+      const concluidos = jornadaData.filter(j => (j.statusPlano || "").toLowerCase() === "finalizado").length;
+      const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
+
+      const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
+      const mediaAvanco = mediasAvanco.length
+        ? mediasAvanco.reduce((a, b) => a + b, 0) / mediasAvanco.length
+        : 0;
+
+      const totalPrestClientes = prestData.length;
+      const prestEmDia = prestData.filter(
+        p => (p.situacaoAtual || "").toLowerCase().includes("preenchido")
+      ).length;
+      const taxaPrestacao = totalPrestClientes > 0 ? (prestEmDia / totalPrestClientes) * 100 : 0;
+
+      const totalOportunidades = bnavData.reduce(
+        (acc, cur) => acc + (cur.oportunidadeTotal || 0),
+        0
+      );
+      const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
+
+      document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
+      document.getElementById("kpi-total-alunos-extra").textContent =
+        `${concluidos} já finalizaram a jornada.`;
+
+      document.getElementById("kpi-taxasucesso").textContent = formatPercent(taxaSucesso);
+      document.getElementById("kpi-taxasucesso-extra").textContent =
+        `Média de avanço: ${formatPercent(mediaAvanco)}.`;
+
+      document.getElementById("kpi-prestacao").textContent = formatPercent(taxaPrestacao);
+      document.getElementById("kpi-prestacao-extra").textContent =
+        `${prestEmDia} de ${totalPrestClientes} alunos com prestação em dia.`;
+
+      document.getElementById("kpi-oportunidades").textContent =
+        formatCurrencyBRL(totalOportunidades);
+      document.getElementById("kpi-oportunidades-extra").textContent =
+        `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
+    }
+
+    // Gráficos
+    function buildAvancoChart(jornadaData) {
+      const ctx = document.getElementById("chart-avanco").getContext("2d");
+      if (chartAvanco) chartAvanco.destroy();
+
+      const labels = jornadaData.map(j => j.cliente);
+      const data = jornadaData.map(j => j.avancoPercent || 0);
+
+      chartAvanco = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "% de avanço",
+              data,
+              backgroundColor: "rgba(31, 115, 183, 0.7)",
+              borderColor: "#1F73B7",
+              borderWidth: 1,
+              borderRadius: 8,
+              maxBarThickness: 40
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => formatPercent(ctx.parsed.y)
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: {
+                callback: value => value + "%"
+              }
+            },
+            x: {
+              ticks: {
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 0
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function buildChurnChart(jornadaData) {
+      const ctx = document.getElementById("chart-churn").getContext("2d");
+      if (chartChurn) chartChurn.destroy();
+
+      const riskCounts = {};
+      jornadaData.forEach(j => {
+        const risk = j.riscoChurn || "Não definido";
+        riskCounts[risk] = (riskCounts[risk] || 0) + 1;
+      });
+
+      const labels = Object.keys(riskCounts);
+      const data = Object.values(riskCounts);
+
+      const colors = labels.map(label => {
+        if (label.includes("Alto")) return "#A32035";
+        if (label.includes("Moderado")) return "#C8A300";
+        if (label.includes("Saudável")) return "#158152";
+        return "#0A1A2F";
+      });
+
+      chartChurn = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [
+            {
+              data,
+              backgroundColor: colors,
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "bottom"
+            }
+          },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildPrestacaoChart(prestData) {
+      const ctx = document.getElementById("chart-prestacao").getContext("2d");
+      if (chartPrestacao) chartPrestacao.destroy();
+
+      const total = prestData.length;
+      const emDia = prestData.filter(
+        p => (p.situacaoAtual || "").toLowerCase().includes("preenchido")
+      ).length;
+      const naoPreenchido = Math.max(total - emDia, 0);
+
+      chartPrestacao = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Em dia", "Não preenchido / atraso"],
+          datasets: [
+            {
+              data: [emDia, naoPreenchido],
+              backgroundColor: ["#158152", "#A32035"],
+              borderWidth: 1
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom" } },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildOportunidadesChart(bnavData) {
+      const ctx = document.getElementById("chart-oportunidades").getContext("2d");
+      if (chartOportunidades) chartOportunidades.destroy();
+
+      const filtered = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0);
+      const labels = filtered.map(b => b.cliente);
+      const data = filtered.map(b => b.oportunidadeTotal || 0);
+
+      chartOportunidades = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Oportunidade (R$)",
+              data,
+              backgroundColor: "rgba(200, 163, 0, 0.75)",
+              borderColor: "#C8A300",
+              borderWidth: 1,
+              borderRadius: 8,
+              maxBarThickness: 40
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => formatCurrencyBRL(ctx.parsed.y)
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: value => formatCurrencyBRL(value)
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function buildExperienceSummary(expDataFiltered) {
+      const container = document.getElementById("experience-summary");
+      if (!expDataFiltered.length) {
+        container.textContent = "Sem dados de Experience para os filtros selecionados.";
+        return;
+      }
+
+      const totalConvites = expDataFiltered.length;
+      const confirmados = expDataFiltered.filter(e => (e.status || "").toUpperCase().includes("CONFIRM")).length;
+      const grupo = expDataFiltered.filter(e => (e.grupo || "").toUpperCase().includes("GRUPO")).length;
+
+      container.innerHTML = `
+        <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
+        <p><strong>${confirmados}</strong> aluno(s) confirmaram presença em encontros.</p>
+        <p><strong>${grupo}</strong> entraram no grupo de WhatsApp.</p>
+        <p style="margin-top:6px;font-size:11px;color:#7A8194;">
+          Ajuste os filtros de mês e encontro para analisar turmas específicas.
+        </p>
+      `;
+    }
+
+    // Score de saúde + recomendações
+    function computeHealth(cliente, j, prest, bnav) {
+      let score = 100;
+      const motivos = [];
+
+      if (!j) return { score: 0, nivel: "Baixa", motivos: ["Sem dados de jornada"], sugestoes: ["Revisar cadastro e jornada deste aluno."] };
+
+      const risco = j.riscoChurn || "";
+      const prazo = j.prazo || "";
+      const avanco = j.avancoPercent || 0;
+      const prestSit = prest ? (prest.situacaoAtual || "") : "";
+      const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+      // Risco
+      if (risco.includes("Alto")) {
+        score -= 30;
+        motivos.push("Marcado como 🚨 Alto risco de churn.");
+      } else if (risco.includes("Moderado")) {
+        score -= 15;
+        motivos.push("Marcado como risco moderado de churn.");
+      }
+
+      // Prazo
+      if (prazo.includes("Atrasado")) {
+        score -= 20;
+        motivos.push("Jornada está em atraso.");
+      }
+
+      // Avanço
+      if (avanco < 50) {
+        const delta = (50 - avanco) * 0.4;
+        score -= delta;
+        motivos.push(`Baixo avanço na trilha (${formatPercent(avanco)}).`);
+      }
+
+      // Prestação de contas
+      if (!prestSit || prestSit.toLowerCase().includes("não preenchido") || prestSit.includes("⚠️")) {
+        score -= 15;
+        motivos.push("Prestação de contas não enviada / em atraso.");
+      }
+
+      // Oportunidade
+      if (oportunidade > 0) {
+        motivos.push(`Possui potencial de upsell de ${formatCurrencyBRL(oportunidade)}.`);
+      }
+
+      score = Math.max(0, Math.min(100, score));
+
+      let nivel = "Alta";
+      if (score < 40) nivel = "Baixa";
+      else if (score < 70) nivel = "Média";
+
+      const sugestoes = [];
+
+      if (risco.includes("Alto") || (prazo.includes("Atrasado") && avanco < 60)) {
+        sugestoes.push("Agendar contato ativo em até 24–48h para entender objeções e reforçar plano de ação.");
+      }
+      if (!prestSit || prestSit.toLowerCase().includes("não preenchido") || prestSit.includes("⚠️")) {
+        sugestoes.push("Reforçar com o aluno o envio da prestação de contas até dia 05 e auxiliar no preenchimento.");
+      }
+      if (oportunidade > 0 && score >= 50) {
+        sugestoes.push("Mapear momento ideal para oferta de upsell/renovação, alinhado às conquistas da jornada.");
+      }
+      if (sugestoes.length === 0) {
+        sugestoes.push("Manter acompanhamento regular, reforçando conquistas e próximos passos.");
+      }
+
+      return { score, nivel, motivos, sugestoes };
+    }
+
+    // Tabela de atenção
+    function buildAttentionTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("attention-body");
+      tbody.innerHTML = "";
+
+      const prestPorCliente = {};
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+
+      const bnavPorCliente = {};
+      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
+
+      const rows = [];
+
+      jornadaData.forEach(j => {
+        const cliente = j.cliente;
+        const prest = prestPorCliente[cliente];
+        const bnav = bnavPorCliente[cliente];
+
+        const risco = j.riscoChurn || "";
+        const prazo = j.prazo || "";
+        const avanco = j.avancoPercent || 0;
+        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        const riscoCritico = risco.includes("Alto") || risco.includes("Moderado");
+        const atrasoTrilha = prazo.includes("Atrasado");
+        const prestRuim =
+          !prestSit || prestSit.toLowerCase().includes("não preenchido") || prestSit.includes("⚠️");
+        const poucoAvanco = avanco < 50;
+        const temOportunidade = oportunidade > 0;
+
+        if (riscoCritico || atrasoTrilha || prestRuim || poucoAvanco || temOportunidade) {
+          rows.push({
+            cliente,
+            plano: j.plano,
+            avanco,
+            prazo,
+            risco,
+            prestacao: prestSit || "–",
+            oportunidade
+          });
+        }
+      });
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.textContent = "Nenhum aluno em atenção especial com as regras atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrazo = document.createElement("td");
+        const spanPrazo = document.createElement("span");
+        spanPrazo.className = "tag-status";
+        if (r.prazo.includes("Atrasado")) spanPrazo.classList.add("tag-atrasado");
+        if (r.prazo.includes("Concluído") || r.prazo.includes("Dentro")) spanPrazo.classList.add("tag-prazo");
+        if (r.prazo.includes("Meio")) spanPrazo.classList.add("tag-meio");
+        spanPrazo.textContent = r.prazo || "–";
+        tdPrazo.appendChild(spanPrazo);
+        tr.appendChild(tdPrazo);
+
+        const tdRisco = document.createElement("td");
+        const riskSpan = document.createElement("span");
+        riskSpan.className = "chip";
+        if (r.risco.includes("Alto")) riskSpan.classList.add("chip-risk-alto");
+        else if (r.risco.includes("Saudável")) riskSpan.classList.add("chip-risk-saudavel");
+        else if (r.risco.includes("Moderado")) riskSpan.classList.add("chip-risk-moderado");
+        riskSpan.textContent = r.risco || "–";
+        tdRisco.appendChild(riskSpan);
+        tr.appendChild(tdRisco);
+
+        const tdPrest = document.createElement("td");
+        const prestSpan = document.createElement("span");
+        prestSpan.className = "tag-status";
+        if ((r.prestacao || "").toLowerCase().includes("preenchido")) {
+          prestSpan.classList.add("tag-prazo");
+        } else if (r.prestacao.includes("⚠️") || (r.prestacao || "").toLowerCase().includes("não preenchido")) {
+          prestSpan.classList.add("tag-atrasado");
+        }
+        prestSpan.textContent = r.prestacao || "–";
+        tdPrest.appendChild(prestSpan);
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        if (r.oportunidade > 0) {
+          const chip = document.createElement("span");
+          chip.className = "chip chip-op";
+          chip.textContent = formatCurrencyBRL(r.oportunidade);
+          tdOp.appendChild(chip);
+        } else {
+          tdOp.textContent = "–";
+        }
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal individual
+    function openAlunoModal(nome) {
+      const modalOverlay = document.getElementById("aluno-modal-overlay");
+      const modalContent = document.getElementById("modal-content");
+
+      const j = allJornada.find(a => a.cliente === nome);
+      const prest = allPrest.find(a => a.cliente === nome);
+      const bnav = allBnav.find(a => a.cliente === nome);
+      const expList = allExp.filter(a => a.aluno === nome);
+
+      const health = computeHealth(nome, j, prest, bnav);
+
+      const prestTexto = prest ? (prest.situacaoAtual || "–") : "–";
+      const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+      const encontrosConfirmados = expList.filter(e => (e.status || "").toUpperCase().includes("CONFIRM")).length;
+
+      let nivelClass = "hs-alta";
+      if (health.nivel === "Média") nivelClass = "hs-media";
+      if (health.nivel === "Baixa") nivelClass = "hs-baixa";
+
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <h2>${nome}</h2>
+          <span>${j ? (j.plano || "Plano não informado") : ""}</span>
+        </div>
+        <div class="modal-grid">
+          <div class="modal-block">
+            <h3>Score de saúde</h3>
+            <div class="health-score">${Math.round(health.score)}/100</div>
+            <div class="health-tag ${nivelClass}">Saúde ${health.nivel}</div>
+            <ul class="modal-list">
+              ${health.motivos.map(m => `<li>${m}</li>`).join("")}
+            </ul>
+          </div>
+          <div class="modal-block">
+            <h3>Jornada</h3>
+            <p><strong>Avanço:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
+            <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "–") : "–"}</p>
+            <p><strong>Prazo:</strong> ${j ? (j.prazo || "–") : "–"}</p>
+            <p><strong>Período:</strong> ${j ? (j.dataInicio || "–") : "–"} até ${j ? (j.dataFim || "–") : "–"}</p>
+          </div>
+        </div>
+
+        <div class="modal-grid" style="margin-top:10px;">
+          <div class="modal-block">
+            <h3>Prestação de contas</h3>
+            <p><strong>Situação atual:</strong> ${prestTexto}</p>
+            <p style="font-size:11px;color:#7A8194;">
+              (Leitura simplificada com base na coluna "Situação atual" da aba Prestação de Contas.)
+            </p>
+          </div>
+          <div class="modal-block">
+            <h3>Oportunidades (Batalha Naval)</h3>
+            <p><strong>Potencial mapeado:</strong> ${formatCurrencyBRL(oportunidade)}</p>
+            <p style="font-size:11px;color:#7A8194;">
+              Este valor soma os produtos marcados como oportunidade para este aluno.
+            </p>
+          </div>
+        </div>
+
+        <div class="modal-block" style="margin-top:10px;">
+          <h3>Engajamento – Let's GO Experience</h3>
+          <p><strong>Registros:</strong> ${expList.length}</p>
+          <p><strong>Encontros confirmados:</strong> ${encontrosConfirmados}</p>
+        </div>
+
+        <div class="modal-block" style="margin-top:10px;">
+          <h3>Recomendações de ação para o CS</h3>
+          <ul class="modal-list">
+            ${health.sugestoes.map(s => `<li>${s}</li>`).join("")}
+          </ul>
+        </div>
+      `;
+
+      modalOverlay.classList.remove("hidden");
+    }
+
+    function closeAlunoModal() {
+      document.getElementById("aluno-modal-overlay").classList.add("hidden");
+    }
+
+    document.getElementById("modal-close-btn").addEventListener("click", closeAlunoModal);
+    document.getElementById("aluno-modal-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
+    });
+
+    // Filtros setup
+    function initFilters() {
+      const planoSelect = document.getElementById("filter-plano");
+      const mesSelect = document.getElementById("filter-exp-mes");
+      const encontroSelect = document.getElementById("filter-exp-encontro");
+
+      // planos
+      const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
+      planos.sort();
+      planos.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        planoSelect.appendChild(opt);
+      });
+
+      planoSelect.addEventListener("change", () => {
+        currentPlanoFilter = planoSelect.value;
+        renderAll();
+      });
+
+      // Experience - meses e encontros
+      const meses = Array.from(new Set(allExp.map(e => e.mes).filter(Boolean)));
+      meses.sort();
+      meses.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        mesSelect.appendChild(opt);
+      });
+
+      const encontros = Array.from(new Set(allExp.map(e => e.encontro).filter(Boolean)));
+      encontros.sort();
+      encontros.forEach(en => {
+        const opt = document.createElement("option");
+        opt.value = en;
+        opt.textContent = en;
+        encontroSelect.appendChild(opt);
+      });
+
+      mesSelect.addEventListener("change", () => {
+        currentExpMesFilter = mesSelect.value;
+        renderAll();
+      });
+
+      encontroSelect.addEventListener("change", () => {
+        currentExpEncontroFilter = encontroSelect.value;
+        renderAll();
+      });
+    }
+
+    // Render tudo considerando filtros
+    function renderAll() {
+      const jornadaFiltrada = getFilteredJornada();
+      const expFiltrada = getFilteredExperience();
+
+      buildKPIs(jornadaFiltrada, allPrest, allBnav);
+      buildAvancoChart(jornadaFiltrada);
+      buildChurnChart(jornadaFiltrada);
+      buildPrestacaoChart(allPrest);
+      buildOportunidadesChart(allBnav);
+      buildExperienceSummary(expFiltrada);
+      buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
+    }
+
+    // Carregar dados
+    async function loadAllData() {
+      try {
+        const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
+          fetchCsv(URL_JORNADA),
+          fetchCsv(URL_PRESTACAO),
+          fetchCsv(URL_BATALHA),
+          fetchCsv(URL_EXPERIENCE)
+        ]);
+
+        allJornada = normalizeJornada(jornadaRows);
+        allPrest = normalizePrestacao(prestRows);
+        allBnav = normalizeBatalha(batalhaRows);
+        allExp = normalizeExperience(expRows);
+
+        document.getElementById("loading-global").textContent = "Dados carregados.";
+
+        initFilters();
+        renderAll();
+
+      } catch (e) {
+        console.error(e);
+        document.getElementById("loading-global").textContent =
+          "Erro ao carregar os dados. Verifique se as abas estão publicadas corretamente em CSV.";
+      }
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
