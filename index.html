@@ -276,84 +276,14 @@
       color: #7A8194;
     }
 
-    .tag-status {
-      font-size: 11px;
-      padding: 2px 7px;
-      border-radius: 999px;
-      background: #F1F3FA;
-      display: inline-block;
-    }
-
-    .tag-atrasado {
-      background: rgba(220, 53, 69, 0.12);
-      color: #A32035;
-    }
-
-    .tag-prazo {
-      background: rgba(31, 199, 116, 0.12);
-      color: #158152;
-    }
-
-    .tag-meio {
-      background: rgba(255, 193, 7, 0.16);
-      color: #947000;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 11px;
-      border-radius: 999px;
-      padding: 2px 8px;
-    }
-
-    .chip-risk-alto {
-      background: rgba(220, 53, 69, 0.12);
-      color: #A32035;
-    }
-
-    .chip-risk-moderado {
-      background: rgba(255, 193, 7, 0.16);
-      color: #947000;
-    }
-
-    .chip-risk-saudavel {
-      background: rgba(31, 199, 116, 0.12);
-      color: #158152;
-    }
-
-    .chip-op {
-      background: rgba(26, 115, 232, 0.12);
-      color: #1450A3;
-    }
-
-    .legend {
-      margin-top: 4px;
-      font-size: 10px;
-      color: #7A8194;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .legend-item {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .legend-dot {
-      width: 9px;
-      height: 9px;
-      border-radius: 50%;
-      display: inline-block;
-    }
-
     .link-cliente {
       cursor: pointer;
       color: var(--cs-blue);
       text-decoration: underline;
+    }
+
+    .section-enc {
+      margin-top: 8px;
     }
 
     @media (max-width: 1024px) {
@@ -441,15 +371,6 @@
       margin: 0 0 4px;
       font-size: 13px;
       color: var(--cs-navy);
-    }
-
-    .modal-list {
-      padding-left: 16px;
-      margin: 4px 0;
-    }
-
-    .modal-list li {
-      margin-bottom: 2px;
     }
 
     .hidden {
@@ -616,15 +537,14 @@
       </table>
     </div>
 
-    <!-- NOVA SEÇÃO: Alunos encerrados / finalizados -->
-    <h2 class="section-title"><span class="icon"></span>Alunos encerrados / finalizados</h2>
+    <!-- NOVA SEÇÃO: Encerrados -->
+    <h2 class="section-title section-enc"><span class="icon"></span>Alunos encerrados / finalizados</h2>
     <div class="card">
       <div class="card-header">
         <div>
           <div class="card-title">Base encerrada da jornada</div>
           <div class="card-subtitle">
-            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído).
-            Clique no nome para ver detalhes no modal.
+            Alunos com jornada concluída (avanço ≥ 99%). Clique no nome para ver detalhes no modal.
           </div>
         </div>
         <span class="pill">Encerrados</span>
@@ -645,7 +565,7 @@
     </div>
   </main>
 
-  <!-- Modal individual do aluno -->
+  <!-- Modal individual -->
   <div id="aluno-modal-overlay" class="modal-overlay hidden">
     <div class="modal">
       <button class="modal-close" id="modal-close-btn">&times;</button>
@@ -654,13 +574,12 @@
   </div>
 
   <script>
-    // URLs CSV das abas
+    // URLs das abas
     const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
     const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
     const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
 
-    // Estado global
     let allJornada = [];
     let allPrest = [];
     let allBnav = [];
@@ -675,7 +594,6 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // Helpers
     function parseCsv(text) {
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
       if (!lines.length) return [];
@@ -690,10 +608,20 @@
       });
     }
 
+    function normalizeStr(s) {
+      if (!s) return "";
+      return s
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+
     function parsePercentString(s) {
       if (!s) return 0;
       let v = s.toString().replace("%", "").trim();
-      v = v.replace(/[^\d.,-]/g, "");
+      v = v.replace(/[^0-9,.-]+/g, "");
       v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
@@ -701,10 +629,10 @@
 
     function parseNumberBR(s) {
       if (!s) return 0;
-      let v = s.toString().trim();
-      if (v === "") return 0;
-      v = v.replace(/[^\d.,-]/g, "");
-      if (v === "") return 0;
+      let v = s.toString();
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      v = v.replace(/[^0-9,.-]+/g, "");
+      if (!v) return 0;
       v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
@@ -726,12 +654,11 @@
       return parseCsv(text);
     }
 
-    // Normalização
     function normalizeJornada(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      const hCliente = headers.find(h => /cliente/i.test(h)) || headers[0];
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
       const hPlano = headers.find(h => /plano/i.test(h)) || "";
       const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
                            headers.find(h => /status do plano/i.test(h)) || "";
@@ -760,24 +687,20 @@
     function normalizePrestacao(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-
-      const hCliente = headers.find(h => /cliente/i.test(h)) || headers[0];
-      const hSituacao = headers.find(h => /situa/i.test(h) && /atual/i.test(h)) ||
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hSituacao = headers.find(h => /situa.*atual/i.test(h)) ||
                         headers.find(h => /situa/i.test(h)) || "";
-
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
         .map(r => ({
           cliente: r[hCliente] || "",
-          situacaoAtual: hSituacao ? (r[hSituacao] || "") : "",
-          raw: r
+          situacaoAtual: hSituacao ? (r[hSituacao] || "") : ""
         }));
     }
 
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-
       const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
       const hTotal = headers.find(h => /total/i.test(h)) || "";
 
@@ -788,8 +711,7 @@
           const total = parseNumberBR(totalRaw);
           return {
             cliente: r[hAluno] || "",
-            oportunidadeTotal: total,
-            raw: r
+            oportunidadeTotal: total
           };
         });
     }
@@ -797,7 +719,6 @@
     function normalizeExperience(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-
       const hMes = headers.find(h => /m[eê]s/i.test(h)) || "";
       const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
       const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || "";
@@ -807,25 +728,31 @@
         mes: hMes ? (r[hMes] || "") : "",
         encontro: hEncontro ? (r[hEncontro] || "") : "",
         aluno: hAluno ? (r[hAluno] || "") : "",
-        status: hStatus ? (r[hStatus] || "") : "",
-        raw: r
+        status: hStatus ? (r[hStatus] || "") : ""
       }));
     }
 
-    // Filtros
+    function isPrestEmDia(situacao) {
+      const s = normalizeStr(situacao);
+      if (!s) return false;
+      if (!s.includes("preench")) return false;
+      if (s.includes("nao") || s.includes("não")) return false;
+      return true;
+    }
+
     function getFilteredJornada() {
       if (currentPlanoFilter === "__all__") return allJornada;
-      return allJornada.filter(j => (j.plano || "").toLowerCase() === currentPlanoFilter.toLowerCase());
+      return allJornada.filter(j => normalizeStr(j.plano) === normalizeStr(currentPlanoFilter));
     }
 
     function getFilteredExperience() {
       return allExp.filter(e => {
         let ok = true;
         if (currentExpMesFilter !== "__all__") {
-          ok = ok && (e.mes || "").toLowerCase() === currentExpMesFilter.toLowerCase();
+          ok = ok && normalizeStr(e.mes) === normalizeStr(currentExpMesFilter);
         }
         if (currentExpEncontroFilter !== "__all__") {
-          ok = ok && (e.encontro || "").toLowerCase() === currentExpEncontroFilter.toLowerCase();
+          ok = ok && normalizeStr(e.encontro) === normalizeStr(currentExpEncontroFilter);
         }
         return ok;
       });
@@ -834,7 +761,9 @@
     // KPIs
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
-      const concluidos = jornadaData.filter(j => (j.statusPlano || "").toLowerCase().includes("final")).length;
+
+      // Concluídos = avanço >= 99%
+      const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
       const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
@@ -843,14 +772,13 @@
         : 0;
 
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[p.cliente] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+
       let prestEmDia = 0;
       jornadaData.forEach(j => {
         const p = prestPorCliente[j.cliente];
-        const sit = p ? (p.situacaoAtual || "").toLowerCase() : "";
-        if (sit.includes("preenchido")) prestEmDia++;
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) prestEmDia++;
       });
       const taxaPrestacao = totalAlunos > 0 ? (prestEmDia / totalAlunos) * 100 : 0;
 
@@ -862,7 +790,7 @@
 
       document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
       document.getElementById("kpi-total-alunos-extra").textContent =
-        `${concluidos} já finalizaram a jornada.`;
+        `${concluidos} já concluíram a jornada.`;
 
       document.getElementById("kpi-taxasucesso").textContent = formatPercent(taxaSucesso);
       document.getElementById("kpi-taxasucesso-extra").textContent =
@@ -890,42 +818,32 @@
         type: "bar",
         data: {
           labels,
-          datasets: [
-            {
-              label: "% de avanço",
-              data,
-              backgroundColor: "rgba(31, 115, 183, 0.7)",
-              borderColor: "#1F73B7",
-              borderWidth: 1,
-              borderRadius: 8,
-              maxBarThickness: 40
-            }
-          ]
+          datasets: [{
+            label: "% de avanço",
+            data,
+            backgroundColor: "rgba(31, 115, 183, 0.7)",
+            borderColor: "#1F73B7",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
         },
         options: {
           responsive: true,
           plugins: {
             legend: { display: false },
             tooltip: {
-              callbacks: {
-                label: ctx => formatPercent(ctx.parsed.y)
-              }
+              callbacks: { label: ctx => formatPercent(ctx.parsed.y) }
             }
           },
           scales: {
             y: {
               beginAtZero: true,
               max: 100,
-              ticks: {
-                callback: value => value + "%"
-              }
+              ticks: { callback: v => v + "%" }
             },
             x: {
-              ticks: {
-                autoSkip: false,
-                maxRotation: 45,
-                minRotation: 0
-              }
+              ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
             }
           }
         }
@@ -959,21 +877,15 @@
         type: "doughnut",
         data: {
           labels,
-          datasets: [
-            {
-              data,
-              backgroundColor: colors,
-              borderWidth: 1
-            }
-          ]
+          datasets: [{
+            data,
+            backgroundColor: colors,
+            borderWidth: 1
+          }]
         },
         options: {
           responsive: true,
-          plugins: {
-            legend: {
-              position: "bottom"
-            }
-          },
+          plugins: { legend: { position: "bottom" } },
           cutout: "55%"
         }
       });
@@ -985,14 +897,13 @@
 
       const totalAlunos = jornadaData.length;
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[p.cliente] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+
       let emDia = 0;
       jornadaData.forEach(j => {
         const p = prestPorCliente[j.cliente];
-        const sit = p ? (p.situacaoAtual || "").toLowerCase() : "";
-        if (sit.includes("preenchido")) emDia++;
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) emDia++;
       });
       const nao = Math.max(totalAlunos - emDia, 0);
 
@@ -1000,13 +911,11 @@
         type: "doughnut",
         data: {
           labels: ["Em dia", "Não enviada / atraso"],
-          datasets: [
-            {
-              data: [emDia, nao],
-              backgroundColor: ["#158152", "#A32035"],
-              borderWidth: 1
-            }
-          ]
+          datasets: [{
+            data: [emDia, nao],
+            backgroundColor: ["#158152", "#A32035"],
+            borderWidth: 1
+          }]
         },
         options: {
           responsive: true,
@@ -1028,34 +937,28 @@
         type: "bar",
         data: {
           labels,
-          datasets: [
-            {
-              label: "Oportunidade (R$)",
-              data,
-              backgroundColor: "rgba(200, 163, 0, 0.75)",
-              borderColor: "#C8A300",
-              borderWidth: 1,
-              borderRadius: 8,
-              maxBarThickness: 40
-            }
-          ]
+          datasets: [{
+            label: "Oportunidade (R$)",
+            data,
+            backgroundColor: "rgba(200, 163, 0, 0.75)",
+            borderColor: "#C8A300",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
         },
         options: {
           responsive: true,
           plugins: {
             legend: { display: false },
             tooltip: {
-              callbacks: {
-                label: ctx => formatCurrencyBRL(ctx.parsed.y)
-              }
+              callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) }
             }
           },
           scales: {
             y: {
               beginAtZero: true,
-              ticks: {
-                callback: value => formatCurrencyBRL(value)
-              }
+              ticks: { callback: v => formatCurrencyBRL(v) }
             }
           }
         }
@@ -1070,7 +973,8 @@
       }
 
       const totalConvites = expDataFiltered.length;
-      const confirmados = expDataFiltered.filter(e => (e.status || "").toUpperCase().includes("CONFIRM")).length;
+      const confirmados = expDataFiltered.filter(e =>
+        normalizeStr(e.status).includes("confirm")).length;
 
       container.innerHTML = `
         <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
@@ -1105,10 +1009,13 @@
         const prestSit = prest ? (prest.situacaoAtual || "") : "";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
 
-        const riscoCritico = risco.includes("Alto") || risco.includes("Moderado");
-        const atrasoTrilha = prazo.includes("Atrasado");
-        const prestRuim =
-          !prestSit || prestSit.toLowerCase().includes("não preenchido") || prestSit.includes("⚠️");
+        const riscoNorm = normalizeStr(risco);
+        const prazoNorm = normalizeStr(prazo);
+        const prestNorm = normalizeStr(prestSit);
+
+        const riscoCritico = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
+        const atrasoTrilha = prazoNorm.includes("atras");
+        const prestRuim = !isPrestEmDia(prestSit);
         const poucoAvanco = avanco < 50;
         const temOportunidade = oportunidade > 0;
 
@@ -1174,10 +1081,9 @@
       });
     }
 
-    // NOVA TABELA: Encerrados
+    // Encerrados = avanço >= 99%
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
-      if (!tbody) return;
       tbody.innerHTML = "";
 
       const prestPorCliente = {};
@@ -1189,23 +1095,13 @@
       const rows = [];
 
       jornadaData.forEach(j => {
-        const statusPlano = (j.statusPlano || "").toLowerCase();
-        if (!statusPlano) return;
-        if (
-          !(
-            statusPlano.includes("final") ||
-            statusPlano.includes("encerr") ||
-            statusPlano.includes("concl")
-          )
-        ) {
-          return;
-        }
+        const avanco = j.avancoPercent || 0;
+        if (avanco < 99) return; // só quem concluiu a jornada
 
         const cliente = j.cliente;
         const prest = prestPorCliente[cliente];
         const bnav = bnavPorCliente[cliente];
 
-        const avanco = j.avancoPercent || 0;
         const prestSit = prest ? (prest.situacaoAtual || "") : "";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
 
@@ -1264,7 +1160,7 @@
       });
     }
 
-    // Modal individual
+    // Modal
     function openAlunoModal(nome) {
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
@@ -1300,7 +1196,7 @@
           <div class="modal-block">
             <h3>Engajamento – Let's GO Experience</h3>
             <p><strong>Registros:</strong> ${expList.length}</p>
-            <p><strong>Confirmados:</strong> ${expList.filter(e => (e.status || "").toUpperCase().includes("CONFIRM")).length}</p>
+            <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
           </div>
         </div>
       `;
@@ -1366,7 +1262,6 @@
       });
     }
 
-    // Render tudo
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
       const expFiltrada = getFilteredExperience();
@@ -1381,7 +1276,6 @@
       buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
     }
 
-    // Carregar dados
     async function loadAllData() {
       try {
         const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
@@ -1400,7 +1294,6 @@
 
         initFilters();
         renderAll();
-
       } catch (e) {
         console.error(e);
         document.getElementById("loading-global").textContent =
