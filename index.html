@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>GO EducaÃ§Ã£o â Controle de Sucesso do Cliente</title>
+  <title>GO Educação – Controle de Sucesso do Cliente</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
@@ -382,8 +382,8 @@
   <header class="topbar">
     <div class="topbar-inner">
       <div class="topbar-title">
-        <h1>GO EducaÃ§Ã£o â Controle de Sucesso do Cliente</h1>
-        <span>Acompanhamento da jornada, prestaÃ§Ã£o de contas, oportunidades e risco de churn.</span>
+        <h1>GO Educação – Controle de Sucesso do Cliente</h1>
+        <span>Acompanhamento da jornada, prestação de contas, oportunidades e risco de churn.</span>
       </div>
       <div class="topbar-badge">
         <span class="topbar-dot"></span>
@@ -394,33 +394,33 @@
 
   <main class="page">
     <div id="loading-global" class="loading">
-      Carregando dados das abas (Jornada, PrestaÃ§Ã£o de contas, Batalha Naval, Experience)...
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
     </div>
 
     <!-- KPIs -->
-    <h2 class="section-title"><span class="icon"></span>VisÃ£o geral</h2>
+    <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">Alunos ativos</div>
-        <div class="kpi-value" id="kpi-total-alunos">â</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
         <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
         <div class="kpi-tag tag-ok">Base atual da mentoria</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-label">Taxa de sucesso da jornada</div>
-        <div class="kpi-value" id="kpi-taxasucesso">â</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
         <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
-        <div class="kpi-tag tag-ok">ConclusÃ£o da trilha</div>
+        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">PrestaÃ§Ã£o de contas em dia</div>
-        <div class="kpi-value" id="kpi-prestacao">â</div>
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
         <div class="kpi-extra" id="kpi-prestacao-extra"></div>
         <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-label">Potencial de upsell / renovaÃ§Ã£o</div>
-        <div class="kpi-value" id="kpi-oportunidades">â</div>
+        <div class="kpi-label">Potencial de upsell / renovação</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
         <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
         <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
       </div>
@@ -435,7 +435,7 @@
         </select>
       </div>
       <div class="filter-group">
-        <label for="filter-exp-mes">MÃªs (Experience)</label>
+        <label for="filter-exp-mes">Mês (Experience)</label>
         <select id="filter-exp-mes">
           <option value="__all__">Todos os meses</option>
         </select>
@@ -448,13 +448,13 @@
       </div>
     </div>
 
-    <!-- GrÃ¡ficos principais -->
+    <!-- Gráficos principais -->
     <div class="layout-two">
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">AvanÃ§o da jornada por aluno</div>
-            <div class="card-subtitle">Percentual de conclusÃ£o da trilha de mentoria (filtrado por plano).</div>
+            <div class="card-title">Avanço da jornada por aluno</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano).</div>
           </div>
           <span class="pill">Jornada do aluno</span>
         </div>
@@ -464,8 +464,8 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">DistribuiÃ§Ã£o de risco de churn</div>
-            <div class="card-subtitle">SaÃºde da base vs. necessidade de intervenÃ§Ã£o do CS.</div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">Saúde da base vs. necessidade de intervenção do CS.</div>
           </div>
           <span class="pill">Risco de churn</span>
         </div>
@@ -478,10 +478,10 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">PrestaÃ§Ã£o de contas</div>
-            <div class="card-subtitle">SituaÃ§Ã£o atual do envio de dados financeiros.</div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">Situação atual do envio de dados financeiros.</div>
           </div>
-          <span class="pill">PrestaÃ§Ã£o de contas</span>
+          <span class="pill">Prestação de contas</span>
         </div>
         <canvas id="chart-prestacao"></canvas>
       </div>
@@ -489,10 +489,10 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Oportunidades â Batalha Naval</div>
-            <div class="card-subtitle">Valor potencial de novos produtos / renovaÃ§Ãµes por aluno.</div>
+            <div class="card-title">Oportunidades – Batalha Naval</div>
+            <div class="card-subtitle">Valor potencial de novos produtos / renovações por aluno.</div>
           </div>
-          <span class="pill">Upsell & RenovaÃ§Ã£o</span>
+          <span class="pill">Upsell & Renovação</span>
         </div>
         <canvas id="chart-oportunidades"></canvas>
       </div>
@@ -500,8 +500,8 @@
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Engajamento â Let's GO Experience</div>
-            <div class="card-subtitle">ParticipaÃ§Ã£o em encontros e confirmaÃ§Ã£o de presenÃ§a (com filtros).</div>
+            <div class="card-title">Engajamento – Let's GO Experience</div>
+            <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
           </div>
           <span class="pill">Experience</span>
         </div>
@@ -509,27 +509,27 @@
       </div>
     </div>
 
-    <!-- Tabela de atenÃ§Ã£o -->
-    <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenÃ§Ã£o do CS</h2>
+    <!-- Tabela de atenção -->
+    <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenção do CS</h2>
     <div class="card">
       <div class="card-header">
         <div>
           <div class="card-title">Mapa de risco e oportunidade</div>
           <div class="card-subtitle">
-            Clique no nome do cliente para abrir a visÃ£o individual (modal).
+            Clique no nome do cliente para abrir a visão individual (modal).
           </div>
         </div>
-        <span class="pill">Prioridade de aÃ§Ã£o</span>
+        <span class="pill">Prioridade de ação</span>
       </div>
       <table class="attention-table">
         <thead>
           <tr>
             <th>Cliente</th>
             <th>Plano</th>
-            <th>AvanÃ§o</th>
+            <th>Avanço</th>
             <th>Prazo</th>
             <th>Risco</th>
-            <th>PrestaÃ§Ã£o</th>
+            <th>Prestação</th>
             <th>Oportunidade</th>
           </tr>
         </thead>
@@ -544,7 +544,7 @@
         <div>
           <div class="card-title">Base encerrada da jornada</div>
           <div class="card-subtitle">
-            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluÃ­do). Clique no nome para ver detalhes no modal.
+            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído). Clique no nome para ver detalhes no modal.
           </div>
         </div>
         <span class="pill">Encerrados</span>
@@ -555,8 +555,8 @@
             <th>Cliente</th>
             <th>Plano</th>
             <th>Status do plano</th>
-            <th>AvanÃ§o</th>
-            <th>PrestaÃ§Ã£o</th>
+            <th>Avanço</th>
+            <th>Prestação</th>
             <th>Oportunidade</th>
           </tr>
         </thead>
@@ -594,12 +594,38 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
+    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
-      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
-      if (!lines.length) return [];
-      const headers = lines[0].split(",").map(h => h.trim());
-      return lines.slice(1).map(line => {
-        const cols = line.split(",");
+      const rawLines = text
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .filter(l => l.trim() !== "");
+
+      if (!rawLines.length) return [];
+
+      const headerLine = rawLines[0];
+
+      const commaCount = (headerLine.match(/,/g) || []).length;
+      const semicolonCount = (headerLine.match(/;/g) || []).length;
+      const tabCount = (headerLine.match(/\t/g) || []).length;
+
+      let sep = ",";
+      if (semicolonCount > commaCount && semicolonCount >= tabCount) {
+        sep = ";";
+      } else if (tabCount > commaCount && tabCount > semicolonCount) {
+        sep = "\t";
+      }
+
+      function splitLine(line) {
+        return line.split(sep).map(part =>
+          part.replace(/^"|"$/g, "").trim()
+        );
+      }
+
+      const headers = splitLine(headerLine);
+
+      return rawLines.slice(1).map(line => {
+        const cols = splitLine(line);
         const obj = {};
         headers.forEach((h, i) => {
           obj[h] = (cols[i] || "").trim();
@@ -627,13 +653,38 @@
       return isNaN(n) ? 0 : n;
     }
 
+    // Parser numérico robusto para BRL
     function parseNumberBR(s) {
-      if (!s) return 0;
-      let v = s.toString();
-      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      v = v.replace(/[^0-9,.-]+/g, "");
+      if (s == null) return 0;
+      let v = s.toString().trim();
       if (!v) return 0;
-      v = v.replace(/\./g, "").replace(",", ".");
+
+      // Remove símbolos e letras, mantendo dígitos, vírgula, ponto e sinal
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      v = v.replace(/[^0-9,.\-]+/g, "");
+      if (!v) return 0;
+
+      const hasComma = v.includes(",");
+      const hasDot = v.includes(".");
+
+      if (hasComma && hasDot) {
+        const lastComma = v.lastIndexOf(",");
+        const lastDot = v.lastIndexOf(".");
+        if (lastComma > lastDot) {
+          // vírgula é decimal, remove todos os pontos (milhar)
+          v = v.replace(/\./g, "").replace(",", ".");
+        } else {
+          // ponto é decimal, remove vírgulas (milhar)
+          v = v.replace(/,/g, "");
+        }
+      } else if (hasComma && !hasDot) {
+        // só vírgula -> decimal
+        v = v.replace(/\./g, "").replace(",", ".");
+      } else {
+        // só ponto ou nenhum -> remove vírgulas (se tiverem vindo como milhar)
+        v = v.replace(/,/g, "");
+      }
+
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -658,14 +709,14 @@
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      const hCliente = headers.find(h => h.trim() === "Oportunidade total por aluno")) || headers[0];
-      const hPlano = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hStatusPlano = headers.find(h => h.trim() === "Oportunidade total por aluno")) ||
-                           headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hStatus = headers.find(h => h.trim() === "Oportunidade total por aluno") && h !== hStatusPlano) || "";
-      const hAvanco = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hPrazo = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hRisco = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
+                           headers.find(h => /status do plano/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h) && h !== hStatusPlano) || "";
+      const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
+      const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
+      const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
@@ -687,9 +738,9 @@
     function normalizePrestacao(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-      const hCliente = headers.find(h => h.trim() === "Oportunidade total por aluno")) || headers[0];
-      const hSituacao = headers.find(h => h.trim() === "Oportunidade total por aluno")) ||
-                        headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hSituacao = headers.find(h => /situa.*atual/i.test(h)) ||
+                        headers.find(h => /situa/i.test(h)) || "";
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
         .map(r => ({
@@ -698,65 +749,19 @@
         }));
     }
 
-    // BATALHA NAVAL â usa apenas "Cliente/Aluno" + "Oportunidade total por aluno"
+    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
 
-      // Tentativa 1: usar o cabeÃ§alho jÃ¡ vindo do CSV
-      let headers = Object.keys(rows[0]);
-      let workingRows = rows;
-
-      const headerHasAluno = headers.some(h => /aluno|cliente/i.test(h));
-
-      // Se a primeira linha NÃO parece ter cabeÃ§alho (caso da Batalha Naval),
-      // tentamos reencontrar a linha de cabeÃ§alho procurando por "ALUNO" ou "CLIENTE"
-      if (!headerHasAluno) {
-        let headerRowIndex = -1;
-
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i];
-          const hasAlunoValue = headers.some(h =>
-            /aluno|cliente/i.test((r[h] || "").toString())
-          );
-          if (hasAlunoValue) {
-            headerRowIndex = i;
-            break;
-          }
-        }
-
-        if (headerRowIndex >= 0) {
-          const originalHeaders = headers.slice();
-          const headerValues = originalHeaders.map(h => (rows[headerRowIndex][h] || "").toString().trim());
-
-          // ConstruÃ­mos novos headers a partir dos valores da linha detectada
-          const rebuiltHeaders = headerValues.map((hv, idx) => hv || `col_${idx}`);
-
-          const rebuiltRows = [];
-          for (let i = headerRowIndex + 1; i < rows.length; i++) {
-            const row = rows[i];
-            const obj = {};
-            originalHeaders.forEach((oldH, idx) => {
-              obj[rebuiltHeaders[idx]] = (row[oldH] || "").toString().trim();
-            });
-            rebuiltRows.push(obj);
-          }
-
-          if (rebuiltRows.length) {
-            workingRows = rebuiltRows;
-            headers = Object.keys(workingRows[0]);
-          }
-        }
-      }
-
-      // A partir daqui, usamos apenas "Cliente/Aluno" + "Oportunidade total por aluno"
-      const hAluno = headers.find(h => h.trim() === "Oportunidade total por aluno")) || headers[0];
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
       const hTotal =
-        headers.find(h => h.trim() === "Oportunidade total por aluno")) ||
-        headers.find(h => h.trim() === "Oportunidade total por aluno")) ||
-        headers.find(h => h.trim() === "Oportunidade total por aluno") && /total/i.test(h)) ||
+        headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
+        headers.find(h => /total.*aluno/i.test(h)) ||
+        headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
-      return workingRows
+      return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
           const totalRaw = hTotal ? (r[hTotal] || "") : "";
@@ -771,10 +776,10 @@
     function normalizeExperience(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-      const hMes = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hEncontro = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hAluno = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
-      const hStatus = headers.find(h => h.trim() === "Oportunidade total por aluno")) || "";
+      const hMes = headers.find(h => /m[eê]s/i.test(h)) || "";
+      const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h)) || "";
 
       return rows.map(r => ({
         mes: hMes ? (r[hMes] || "") : "",
@@ -788,7 +793,7 @@
       const s = normalizeStr(situacao);
       if (!s) return false;
       if (!s.includes("preench")) return false;
-      if (s.includes("nao") || s.includes("nÃ£o")) return false;
+      if (s.includes("nao") || s.includes("não")) return false;
       return true;
     }
 
@@ -841,15 +846,15 @@
 
       document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
       document.getElementById("kpi-total-alunos-extra").textContent =
-        `${concluidos} jÃ¡ concluÃ­ram a jornada.`;
+        `${concluidos} já concluíram a jornada.`;
 
       document.getElementById("kpi-taxasucesso").textContent = formatPercent(taxaSucesso);
       document.getElementById("kpi-taxasucesso-extra").textContent =
-        `MÃ©dia de avanÃ§o: ${formatPercent(mediaAvanco)}.`;
+        `Média de avanço: ${formatPercent(mediaAvanco)}.`;
 
       document.getElementById("kpi-prestacao").textContent = formatPercent(taxaPrestacao);
       document.getElementById("kpi-prestacao-extra").textContent =
-        `${prestEmDia} de ${totalAlunos} aluno(s) com prestaÃ§Ã£o em dia.`;
+        `${prestEmDia} de ${totalAlunos} aluno(s) com prestação em dia.`;
 
       document.getElementById("kpi-oportunidades").textContent =
         formatCurrencyBRL(totalOportunidades);
@@ -857,7 +862,7 @@
         `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
-    // GrÃ¡ficos
+    // Gráficos
     function buildAvancoChart(jornadaData) {
       const ctx = document.getElementById("chart-avanco").getContext("2d");
       if (chartAvanco) chartAvanco.destroy();
@@ -870,7 +875,7 @@
         data: {
           labels,
           datasets: [{
-            label: "% de avanÃ§o",
+            label: "% de avanço",
             data,
             backgroundColor: "rgba(31, 115, 183, 0.7)",
             borderColor: "#1F73B7",
@@ -907,7 +912,7 @@
 
       const riskCounts = {};
       jornadaData.forEach(j => {
-        const risk = j.riscoChurn || "NÃ£o definido";
+        const risk = j.riscoChurn || "Não definido";
         riskCounts[risk] = (riskCounts[risk] || 0) + 1;
       });
 
@@ -961,7 +966,7 @@
       chartPrestacao = new Chart(ctx, {
         type: "doughnut",
         data: {
-          labels: ["Em dia", "NÃ£o enviada / atraso"],
+          labels: ["Em dia", "Não enviada / atraso"],
           datasets: [{
             data: [emDia, nao],
             backgroundColor: ["#158152", "#A32035"],
@@ -1029,14 +1034,14 @@
 
       container.innerHTML = `
         <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
-        <p><strong>${confirmados}</strong> aluno(s) confirmaram presenÃ§a em encontros.</p>
+        <p><strong>${confirmados}</strong> aluno(s) confirmaram presença em encontros.</p>
         <p style="margin-top:6px;font-size:11px;color:#7A8194;">
-          Ajuste os filtros de mÃªs e encontro para analisar turmas especÃ­ficas.
+          Ajuste os filtros de mês e encontro para analisar turmas específicas.
         </p>
       `;
     }
 
-    // Tabela de atenÃ§Ã£o
+    // Tabela de atenção
     function buildAttentionTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("attention-body");
       tbody.innerHTML = "";
@@ -1076,7 +1081,7 @@
             avanco,
             prazo,
             risco,
-            prestacao: prestSit || "â",
+            prestacao: prestSit || "–",
             oportunidade
           });
         }
@@ -1086,7 +1091,7 @@
         const tr = document.createElement("tr");
         const td = document.createElement("td");
         td.colSpan = 7;
-        td.textContent = "Nenhum aluno em atenÃ§Ã£o especial com as regras atuais.";
+        td.textContent = "Nenhum aluno em atenção especial com as regras atuais.";
         td.style.fontSize = "12px";
         td.style.color = "#7A8194";
         tr.appendChild(td);
@@ -1104,7 +1109,7 @@
         tr.appendChild(tdCliente);
 
         const tdPlano = document.createElement("td");
-        tdPlano.textContent = r.plano || "â";
+        tdPlano.textContent = r.plano || "–";
         tr.appendChild(tdPlano);
 
         const tdAvanco = document.createElement("td");
@@ -1112,26 +1117,26 @@
         tr.appendChild(tdAvanco);
 
         const tdPrazo = document.createElement("td");
-        tdPrazo.textContent = r.prazo || "â";
+        tdPrazo.textContent = r.prazo || "–";
         tr.appendChild(tdPrazo);
 
         const tdRisco = document.createElement("td");
-        tdRisco.textContent = r.risco || "â";
+        tdRisco.textContent = r.risco || "–";
         tr.appendChild(tdRisco);
 
         const tdPrest = document.createElement("td");
-        tdPrest.textContent = r.prestacao || "â";
+        tdPrest.textContent = r.prestacao || "–";
         tr.appendChild(tdPrest);
 
         const tdOp = document.createElement("td");
-        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "â";
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
         tr.appendChild(tdOp);
 
         tbody.appendChild(tr);
       });
     }
 
-    // Encerrados = avanÃ§o >= 99%
+    // Encerrados = avanço >= 99%
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
@@ -1160,7 +1165,7 @@
           plano: j.plano,
           statusPlano: j.statusPlano || "",
           avanco,
-          prestacao: prestSit || "â",
+          prestacao: prestSit || "–",
           oportunidade
         });
       });
@@ -1187,11 +1192,11 @@
         tr.appendChild(tdCliente);
 
         const tdPlano = document.createElement("td");
-        tdPlano.textContent = r.plano || "â";
+        tdPlano.textContent = r.plano || "–";
         tr.appendChild(tdPlano);
 
         const tdStatus = document.createElement("td");
-        tdStatus.textContent = r.statusPlano || "â";
+        tdStatus.textContent = r.statusPlano || "–";
         tr.appendChild(tdStatus);
 
         const tdAvanco = document.createElement("td");
@@ -1199,11 +1204,11 @@
         tr.appendChild(tdAvanco);
 
         const tdPrest = document.createElement("td");
-        tdPrest.textContent = r.prestacao || "â";
+        tdPrest.textContent = r.prestacao || "–";
         tr.appendChild(tdPrest);
 
         const tdOp = document.createElement("td");
-        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "â";
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
         tr.appendChild(tdOp);
 
         tbody.appendChild(tr);
@@ -1223,18 +1228,18 @@
       modalContent.innerHTML = `
         <div class="modal-header">
           <h2>${nome}</h2>
-          <span>${j ? (j.plano || "Plano nÃ£o informado") : ""}</span>
+          <span>${j ? (j.plano || "Plano não informado") : ""}</span>
         </div>
         <div class="modal-grid">
           <div class="modal-block">
             <h3>Jornada</h3>
-            <p><strong>AvanÃ§o:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
-            <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "â") : "â"}</p>
-            <p><strong>Prazo:</strong> ${j ? (j.prazo || "â") : "â"}</p>
+            <p><strong>Avanço:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
+            <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "–") : "–"}</p>
+            <p><strong>Prazo:</strong> ${j ? (j.prazo || "–") : "–"}</p>
           </div>
           <div class="modal-block">
-            <h3>PrestaÃ§Ã£o de contas</h3>
-            <p><strong>SituaÃ§Ã£o atual:</strong> ${prest ? (prest.situacaoAtual || "â") : "â"}</p>
+            <h3>Prestação de contas</h3>
+            <p><strong>Situação atual:</strong> ${prest ? (prest.situacaoAtual || "–") : "–"}</p>
           </div>
         </div>
 
@@ -1244,7 +1249,7 @@
             <p><strong>Potencial mapeado:</strong> ${formatCurrencyBRL(bnav ? (bnav.oportunidadeTotal || 0) : 0)}</p>
           </div>
           <div class="modal-block">
-            <h3>Engajamento â Let's GO Experience</h3>
+            <h3>Engajamento – Let's GO Experience</h3>
             <p><strong>Registros:</strong> ${expList.length}</p>
             <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
           </div>
