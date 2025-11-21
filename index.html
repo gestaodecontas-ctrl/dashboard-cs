@@ -698,11 +698,57 @@
         }));
     }
 
-    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
+    // BATALHA NAVAL – usa apenas "Cliente/Aluno" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
-      const headers = Object.keys(rows[0]);
 
+      // Tentativa 1: usar o cabeçalho já vindo do CSV
+      let headers = Object.keys(rows[0]);
+      let workingRows = rows;
+
+      const headerHasAluno = headers.some(h => /aluno|cliente/i.test(h));
+
+      // Se a primeira linha NÃO parece ter cabeçalho (caso da Batalha Naval),
+      // tentamos reencontrar a linha de cabeçalho procurando por "ALUNO" ou "CLIENTE"
+      if (!headerHasAluno) {
+        let headerRowIndex = -1;
+
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i];
+          const hasAlunoValue = headers.some(h =>
+            /aluno|cliente/i.test((r[h] || "").toString())
+          );
+          if (hasAlunoValue) {
+            headerRowIndex = i;
+            break;
+          }
+        }
+
+        if (headerRowIndex >= 0) {
+          const originalHeaders = headers.slice();
+          const headerValues = originalHeaders.map(h => (rows[headerRowIndex][h] || "").toString().trim());
+
+          // Construímos novos headers a partir dos valores da linha detectada
+          const rebuiltHeaders = headerValues.map((hv, idx) => hv || `col_${idx}`);
+
+          const rebuiltRows = [];
+          for (let i = headerRowIndex + 1; i < rows.length; i++) {
+            const row = rows[i];
+            const obj = {};
+            originalHeaders.forEach((oldH, idx) => {
+              obj[rebuiltHeaders[idx]] = (row[oldH] || "").toString().trim();
+            });
+            rebuiltRows.push(obj);
+          }
+
+          if (rebuiltRows.length) {
+            workingRows = rebuiltRows;
+            headers = Object.keys(workingRows[0]);
+          }
+        }
+      }
+
+      // A partir daqui, usamos apenas "Cliente/Aluno" + "Oportunidade total por aluno"
       const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
       const hTotal =
         headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
@@ -710,7 +756,7 @@
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
-      return rows
+      return workingRows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
           const totalRaw = hTotal ? (r[hTotal] || "") : "";
