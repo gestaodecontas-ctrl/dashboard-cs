@@ -574,7 +574,7 @@
   </div>
 
   <script>
-    // URLs das abas
+    // URLs das abas (mantidas como já estavam)
     const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
     const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
@@ -653,36 +653,50 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // Parser numérico robusto para BRL
+    // Parser numérico robusto para BRL (ex: 20.300,00 | 20.300 | 20300 | 3,60)
     function parseNumberBR(s) {
       if (s == null) return 0;
       let v = s.toString().trim();
       if (!v) return 0;
 
-      // Remove símbolos e letras, mantendo dígitos, vírgula, ponto e sinal
+      // tira acento e qualquer coisa que não seja número, ponto, vírgula ou sinal
       v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       v = v.replace(/[^0-9,.\-]+/g, "");
       if (!v) return 0;
 
-      const hasComma = v.includes(",");
-      const hasDot = v.includes(".");
+      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/; // 20.300,00
+      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;        // 20.300
+      const commaDecimalRegex          = /^\d+(,\d+)?$/;               // 20300,00 ou 20300,5
+      const dotDecimalRegex            = /^\d+(\.\d+)?$/;              // 20300.00
 
-      if (hasComma && hasDot) {
-        const lastComma = v.lastIndexOf(",");
-        const lastDot = v.lastIndexOf(".");
-        if (lastComma > lastDot) {
-          // vírgula é decimal, remove todos os pontos (milhar)
-          v = v.replace(/\./g, "").replace(",", ".");
+      if (brThousandsAndDecimalRegex.test(v)) {
+        // 20.300,00 -> 20300.00
+        v = v.replace(/\./g, "").replace(",", ".");
+      } else if (brThousandsOnlyRegex.test(v)) {
+        // 20.300 -> 20300
+        v = v.replace(/\./g, "");
+      } else if (commaDecimalRegex.test(v)) {
+        // 20300,50 -> 20300.50
+        v = v.replace(",", ".");
+      } else if (dotDecimalRegex.test(v)) {
+        // 20300.50 (já ok)
+      } else {
+        // fallback heurístico
+        const hasComma = v.includes(",");
+        const hasDot = v.includes(".");
+        if (hasComma && hasDot) {
+          const lastComma = v.lastIndexOf(",");
+          const lastDot = v.lastIndexOf(".");
+          if (lastComma > lastDot) {
+            v = v.replace(/\./g, "").replace(",", ".");
+          } else {
+            v = v.replace(/,/g, "");
+          }
+        } else if (hasComma && !hasDot) {
+          v = v.replace(",", ".");
         } else {
-          // ponto é decimal, remove vírgulas (milhar)
           v = v.replace(/,/g, "");
         }
-      } else if (hasComma && !hasDot) {
-        // só vírgula -> decimal
-        v = v.replace(/\./g, "").replace(",", ".");
-      } else {
-        // só ponto ou nenhum -> remove vírgulas (se tiverem vindo como milhar)
-        v = v.replace(/,/g, "");
       }
 
       const n = parseFloat(v);
@@ -828,11 +842,13 @@
         : 0;
 
       const prestPorCliente = {};
-      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
 
       let prestEmDia = 0;
       jornadaData.forEach(j => {
-        const p = prestPorCliente[j.cliente];
+        const p = prestPorCliente[normalizeStr(j.cliente)];
         const sit = p ? p.situacaoAtual : "";
         if (isPrestEmDia(sit)) prestEmDia++;
       });
@@ -953,11 +969,13 @@
 
       const totalAlunos = jornadaData.length;
       const prestPorCliente = {};
-      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
 
       let emDia = 0;
       jornadaData.forEach(j => {
-        const p = prestPorCliente[j.cliente];
+        const p = prestPorCliente[normalizeStr(j.cliente)];
         const sit = p ? p.situacaoAtual : "";
         if (isPrestEmDia(sit)) emDia++;
       });
@@ -1047,17 +1065,21 @@
       tbody.innerHTML = "";
 
       const prestPorCliente = {};
-      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
 
       const bnavPorCliente = {};
-      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
 
       const rows = [];
 
       jornadaData.forEach(j => {
         const cliente = j.cliente;
-        const prest = prestPorCliente[cliente];
-        const bnav = bnavPorCliente[cliente];
+        const prest = prestPorCliente[normalizeStr(cliente)];
+        const bnav = bnavPorCliente[normalizeStr(cliente)];
 
         const risco = j.riscoChurn || "";
         const prazo = j.prazo || "";
@@ -1142,10 +1164,14 @@
       tbody.innerHTML = "";
 
       const prestPorCliente = {};
-      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
 
       const bnavPorCliente = {};
-      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
 
       const rows = [];
 
@@ -1154,8 +1180,8 @@
         if (avanco < 99) return;
 
         const cliente = j.cliente;
-        const prest = prestPorCliente[cliente];
-        const bnav = bnavPorCliente[cliente];
+        const prest = prestPorCliente[normalizeStr(cliente)];
+        const bnav = bnavPorCliente[normalizeStr(cliente)];
 
         const prestSit = prest ? (prest.situacaoAtual || "") : "";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
@@ -1220,10 +1246,12 @@
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
 
-      const j = allJornada.find(a => a.cliente === nome);
-      const prest = allPrest.find(a => a.cliente === nome);
-      const bnav = allBnav.find(a => a.cliente === nome);
-      const expList = allExp.filter(a => a.aluno === nome);
+      const nomeNorm = normalizeStr(nome);
+
+      const j = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const prest = allPrest.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const bnav = allBnav.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const expList = allExp.filter(a => normalizeStr(a.aluno) === nomeNorm);
 
       modalContent.innerHTML = `
         <div class="modal-header">
