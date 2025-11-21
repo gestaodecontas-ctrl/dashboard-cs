@@ -574,7 +574,7 @@
   </div>
 
   <script>
-    // URLs das abas (mantidas como já estavam)
+    // URLs das abas
     const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
     const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
@@ -768,12 +768,37 @@
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
-      const hTotal =
+      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback (muito comum ser o "Cliente")
+      let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
+      if (!hAluno) {
+        hAluno = headers[1] || headers[0];
+      }
+
+      let hTotal =
         headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
         headers.find(h => /total.*aluno/i.test(h)) ||
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
+
+      // Se ainda não encontrar, tenta heurística: escolhe a coluna mais "numérica"
+      if (!hTotal) {
+        let bestCol = "";
+        let bestScore = -1;
+        headers.forEach(h => {
+          let score = 0;
+          rows.forEach(r => {
+            const val = r[h];
+            if (!val) return;
+            const n = parseNumberBR(val);
+            if (!isNaN(n) && n !== 0) score++;
+          });
+          if (score > bestScore) {
+            bestScore = score;
+            bestCol = h;
+          }
+        });
+        hTotal = bestCol || headers[0];
+      }
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
