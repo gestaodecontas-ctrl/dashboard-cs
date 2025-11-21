@@ -594,12 +594,38 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
+    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
-      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
-      if (!lines.length) return [];
-      const headers = lines[0].split(",").map(h => h.trim());
-      return lines.slice(1).map(line => {
-        const cols = line.split(",");
+      const rawLines = text
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .filter(l => l.trim() !== "");
+
+      if (!rawLines.length) return [];
+
+      const headerLine = rawLines[0];
+
+      const commaCount = (headerLine.match(/,/g) || []).length;
+      const semicolonCount = (headerLine.match(/;/g) || []).length;
+      const tabCount = (headerLine.match(/\t/g) || []).length;
+
+      let sep = ",";
+      if (semicolonCount > commaCount && semicolonCount >= tabCount) {
+        sep = ";";
+      } else if (tabCount > commaCount && tabCount > semicolonCount) {
+        sep = "\t";
+      }
+
+      function splitLine(line) {
+        return line.split(sep).map(part =>
+          part.replace(/^"|"$/g, "").trim()
+        );
+      }
+
+      const headers = splitLine(headerLine);
+
+      return rawLines.slice(1).map(line => {
+        const cols = splitLine(line);
         const obj = {};
         headers.forEach((h, i) => {
           obj[h] = (cols[i] || "").trim();
@@ -615,7 +641,6 @@
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
-        .replace(/\s+/g, "")
         .trim();
     }
 
@@ -628,13 +653,38 @@
       return isNaN(n) ? 0 : n;
     }
 
+    // Parser numérico robusto para BRL
     function parseNumberBR(s) {
-      if (!s) return 0;
-      let v = s.toString();
-      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      v = v.replace(/[^0-9,.-]+/g, "");
+      if (s == null) return 0;
+      let v = s.toString().trim();
       if (!v) return 0;
-      v = v.replace(/\./g, "").replace(",", ".");
+
+      // Remove símbolos e letras, mantendo dígitos, vírgula, ponto e sinal
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      v = v.replace(/[^0-9,.\-]+/g, "");
+      if (!v) return 0;
+
+      const hasComma = v.includes(",");
+      const hasDot = v.includes(".");
+
+      if (hasComma && hasDot) {
+        const lastComma = v.lastIndexOf(",");
+        const lastDot = v.lastIndexOf(".");
+        if (lastComma > lastDot) {
+          // vírgula é decimal, remove todos os pontos (milhar)
+          v = v.replace(/\./g, "").replace(",", ".");
+        } else {
+          // ponto é decimal, remove vírgulas (milhar)
+          v = v.replace(/,/g, "");
+        }
+      } else if (hasComma && !hasDot) {
+        // só vírgula -> decimal
+        v = v.replace(/\./g, "").replace(",", ".");
+      } else {
+        // só ponto ou nenhum -> remove vírgulas (se tiverem vindo como milhar)
+        v = v.replace(/,/g, "");
+      }
+
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -705,10 +755,7 @@
       const headers = Object.keys(rows[0]);
 
       const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
-
-      // Match EXATO (normalizado) da coluna "Oportunidade total por aluno"
       const hTotal =
-        headers.find(h => normalizeStr(h) === "oportunidadetotalporaluno") ||
         headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
         headers.find(h => /total.*aluno/i.test(h)) ||
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
@@ -1089,7 +1136,7 @@
       });
     }
 
-    // Encerrados
+    // Encerrados = avanço >= 99%
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
