@@ -537,14 +537,14 @@
       </table>
     </div>
 
-    <!-- Seção: Encerrados -->
+    <!-- Encerrados -->
     <h2 class="section-title section-enc"><span class="icon"></span>Alunos encerrados / finalizados</h2>
     <div class="card">
       <div class="card-header">
         <div>
           <div class="card-title">Base encerrada da jornada</div>
           <div class="card-subtitle">
-            Alunos com jornada concluída (avanço ≥ 99%). Clique no nome para ver detalhes no modal.
+            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído). Clique no nome para ver detalhes no modal.
           </div>
         </div>
         <span class="pill">Encerrados</span>
@@ -594,7 +594,6 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // ---------- PARSERS BÁSICOS ----------
     function parseCsv(text) {
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
       if (!lines.length) return [];
@@ -607,53 +606,6 @@
         });
         return obj;
       });
-    }
-
-    // Parser específico para a Batalha Naval (por causa das linhas 1 e 2 especiais)
-    async function fetchBatalhaCsv(url) {
-      const res = await fetch(url);
-      const text = await res.text();
-
-      const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
-      if (!lines.length) return [];
-
-      // Encontrar a linha de cabeçalho REAL (Status, Cliente, ... , Oportunidade total por aluno)
-      let headerIndex = -1;
-      for (let i = 0; i < lines.length; i++) {
-        const cols = lines[i].split(",");
-        const hasCliente = cols.some(c => /cliente/i.test(c));
-        const hasOportunidadeAluno = cols.some(c => /oportunidade.*total.*aluno/i.test(c));
-        if (hasCliente && hasOportunidadeAluno) {
-          headerIndex = i;
-          break;
-        }
-      }
-
-      // Se não achar, usa o parser genérico
-      if (headerIndex === -1) {
-        return parseCsv(text);
-      }
-
-      const headerCols = lines[headerIndex].split(",").map(h => h.trim());
-      const dataLines = lines.slice(headerIndex + 1);
-      const rows = [];
-
-      dataLines.forEach(line => {
-        if (!line.trim()) return;
-        const cols = line.split(",");
-        const obj = {};
-        headerCols.forEach((h, idx) => {
-          obj[h] = (cols[idx] || "").trim();
-        });
-
-        const clienteHeader = headerCols.find(h => /cliente/i.test(h));
-        const clienteNome = clienteHeader ? (obj[clienteHeader] || "").trim() : "";
-        if (!clienteNome) return; // ignora linhas vazias ou totais
-
-        rows.push(obj);
-      });
-
-      return rows;
     }
 
     function normalizeStr(s) {
@@ -702,7 +654,6 @@
       return parseCsv(text);
     }
 
-    // ---------- NORMALIZAÇÃO DAS ABAS ----------
     function normalizeJornada(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
@@ -747,18 +698,22 @@
         }));
     }
 
-    // >>> AQUI: USANDO APENAS A COLUNA "Oportunidade total por aluno"
+    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
+
       const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
-      const hTotalAluno = headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
-                          headers.find(h => /oportunidade/i.test(h)) || "";
+      const hTotal =
+        headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
+        headers.find(h => /total.*aluno/i.test(h)) ||
+        headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
+        "";
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
         .map(r => {
-          const totalRaw = hTotalAluno ? (r[hTotalAluno] || "") : "";
+          const totalRaw = hTotal ? (r[hTotal] || "") : "";
           const total = parseNumberBR(totalRaw);
           return {
             cliente: r[hAluno] || "",
@@ -809,18 +764,10 @@
       });
     }
 
-    // Batalha Naval alinhada com a Jornada filtrada
-    function getBnavForJornada(jornadaData) {
-      if (!jornadaData || !jornadaData.length) return [];
-      const namesSet = new Set(jornadaData.map(j => normalizeStr(j.cliente)));
-      return allBnav.filter(b => namesSet.has(normalizeStr(b.cliente)));
-    }
-
-    // ---------- KPIs ----------
+    // KPIs
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
-      // Concluídos = avanço >= 99%
       const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
@@ -864,7 +811,7 @@
         `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
-    // ---------- GRÁFICOS ----------
+    // Gráficos
     function buildAvancoChart(jornadaData) {
       const ctx = document.getElementById("chart-avanco").getContext("2d");
       if (chartAvanco) chartAvanco.destroy();
@@ -1043,7 +990,7 @@
       `;
     }
 
-    // ---------- TABELAS ----------
+    // Tabela de atenção
     function buildAttentionTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("attention-body");
       tbody.innerHTML = "";
@@ -1153,7 +1100,7 @@
 
       jornadaData.forEach(j => {
         const avanco = j.avancoPercent || 0;
-        if (avanco < 99) return; // só quem concluiu a jornada
+        if (avanco < 99) return;
 
         const cliente = j.cliente;
         const prest = prestPorCliente[cliente];
@@ -1217,7 +1164,7 @@
       });
     }
 
-    // ---------- MODAL ----------
+    // Modal
     function openAlunoModal(nome) {
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
@@ -1270,7 +1217,7 @@
       if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
     });
 
-    // ---------- FILTROS ----------
+    // Filtros
     function initFilters() {
       const planoSelect = document.getElementById("filter-plano");
       const mesSelect = document.getElementById("filter-exp-mes");
@@ -1319,29 +1266,26 @@
       });
     }
 
-    // ---------- RENDER GERAL ----------
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
       const expFiltrada = getFilteredExperience();
-      const bnavFiltrada = getBnavForJornada(jornadaFiltrada);
 
-      buildKPIs(jornadaFiltrada, allPrest, bnavFiltrada);
+      buildKPIs(jornadaFiltrada, allPrest, allBnav);
       buildAvancoChart(jornadaFiltrada);
       buildChurnChart(jornadaFiltrada);
       buildPrestacaoChart(jornadaFiltrada, allPrest);
-      buildOportunidadesChart(bnavFiltrada);
+      buildOportunidadesChart(allBnav);
       buildExperienceSummary(expFiltrada);
-      buildAttentionTable(jornadaFiltrada, allPrest, bnavFiltrada);
-      buildEncerradosTable(jornadaFiltrada, allPrest, bnavFiltrada);
+      buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
+      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
     }
 
-    // ---------- CARREGAMENTO INICIAL ----------
     async function loadAllData() {
       try {
         const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
           fetchCsv(URL_JORNADA),
           fetchCsv(URL_PRESTACAO),
-          fetchBatalhaCsv(URL_BATALHA),
+          fetchCsv(URL_BATALHA),
           fetchCsv(URL_EXPERIENCE)
         ]);
 
