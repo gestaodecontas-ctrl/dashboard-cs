@@ -394,7 +394,7 @@
 
   <main class="page">
     <div id="loading-global" class="loading">
-      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience, Vendas/Renovação)...
     </div>
 
     <!-- KPIs -->
@@ -460,7 +460,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Avanço da jornada por aluno</div>
-            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano / mês de churn).</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano / mês do churn).</div>
           </div>
           <span class="pill">Jornada do aluno</span>
         </div>
@@ -509,10 +509,25 @@
             <div class="card-title">Engajamento – Let's GO Experience</div>
             <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
           </div>
-        <span class="pill">Experience</span>
+          <span class="pill">Experience</span>
         </div>
         <div id="experience-summary" style="font-size:12px;color:#444;"></div>
       </div>
+    </div>
+
+    <!-- Resultados reais de upsell / renovação -->
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Resultados – Upsell & Renovação</div>
+          <div class="card-subtitle">
+            Vendas efetivadas por mês (aba Vendas/Renovação) separadas por tipo.
+          </div>
+        </div>
+        <span class="pill">Resultados reais</span>
+      </div>
+      <canvas id="chart-vendas"></canvas>
+      <div id="vendas-resumo" style="font-size:12px;color:#444;margin-top:6px;"></div>
     </div>
 
     <!-- Tabela de atenção -->
@@ -585,11 +600,13 @@
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
     const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
     const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+    const URL_VENDAS  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
     let allJornada = [];
     let allPrest = [];
     let allBnav = [];
     let allExp = [];
+    let allVendas = [];
 
     let currentPlanoFilter = "__all__";
     let currentChurnMesFilter = "__all__";
@@ -600,6 +617,9 @@
     let chartChurn = null;
     let chartPrestacao = null;
     let chartOportunidades = null;
+    let chartVendas = null;
+
+    // ------------------ Funções utilitárias ------------------
 
     function parseCsv(text) {
       const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
@@ -655,11 +675,51 @@
       return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
     }
 
-    async function fetchCsv(url) {
+    // chave = YYYY-MM (para filtros / agrupamentos)
+    function getMonthKeyFromString(s) {
+      if (!s) return "";
+      const clean = s.toString().trim();
+      if (!clean) return "";
+
+      if (/^\d{2}\/\d{4}$/.test(clean)) {
+        const [m, y] = clean.split("/");
+        return `${y}-${m}`;
+      }
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(clean)) {
+        const [d, m, y] = clean.split("/");
+        return `${y}-${m}`;
+      }
+      if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+        const [y, m] = clean.split("-");
+        return `${y}-${m}`;
+      }
+      if (/^\d{4}-\d{2}$/.test(clean)) {
+        return clean;
+      }
+      return clean;
+    }
+
+    function monthLabelFromKey(key) {
+      if (!key) return "";
+      if (/^\d{4}-\d{2}$/.test(key)) {
+        const [y, m] = key.split("-");
+        return `${m}/${y}`;
+      }
+      return key;
+    }
+
+    async function fetchCsvGeneric(url) {
       const res = await fetch(url);
       const text = await res.text();
       return parseCsv(text);
     }
+
+    async function fetchText(url) {
+      const res = await fetch(url);
+      return res.text();
+    }
+
+    // ------------------ Normalização das abas ------------------
 
     function normalizeJornada(rows) {
       if (!rows.length) return [];
@@ -673,13 +733,17 @@
       const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
       const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
       const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
-      const hMesChurn = headers.find(h => /m[eê]s.*churn/i.test(h)) || "";
+      const hMesChurn = headers.find(h => /mes.*churn|m[eê]s.*churn/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
         .map(r => {
           const avancoStr = hAvanco ? (r[hAvanco] || "") : "";
           const avancoPercent = parsePercentString(avancoStr);
+          const mesChurnRaw = hMesChurn ? (r[hMesChurn] || "") : "";
+          const mesChurnKey = getMonthKeyFromString(mesChurnRaw);
+          const mesChurnLabel = mesChurnKey ? monthLabelFromKey(mesChurnKey) : "";
+
           return {
             status: hStatus ? (r[hStatus] || "") : "",
             plano: hPlano ? (r[hPlano] || "") : "",
@@ -688,7 +752,8 @@
             avancoPercent: avancoPercent || 0,
             prazo: hPrazo ? (r[hPrazo] || "") : "",
             riscoChurn: hRisco ? (r[hRisco] || "") : "",
-            mesChurn: hMesChurn ? (r[hMesChurn] || "") : ""
+            mesChurnKey,
+            mesChurnLabel: mesChurnLabel || mesChurnRaw || ""
           };
         });
     }
@@ -707,26 +772,45 @@
         }));
     }
 
-    function normalizeBatalha(rows) {
-      if (!rows.length) return [];
-      const headers = Object.keys(rows[0]);
-      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
-      const hTotal =
-        headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
-        headers.find(h => /total.*aluno/i.test(h)) ||
-        headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
-        "";
+    // Batalha Naval – parseando a partir do texto bruto para driblar a primeira linha "esquisita"
+    function normalizeBatalhaFromText(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+      if (!lines.length) return [];
 
-      return rows
-        .filter(r => (r[hAluno] || "").trim() !== "")
-        .map(r => {
-          const totalRaw = hTotal ? (r[hTotal] || "") : "";
-          const total = parseNumberBR(totalRaw);
-          return {
-            cliente: r[hAluno] || "",
-            oportunidadeTotal: total
-          };
+      // Procura linha que tenha Status + Cliente (cabeçalho "real")
+      let headerIndex = 0;
+      for (let i = 0; i < lines.length; i++) {
+        const lower = lines[i].toLowerCase();
+        if (lower.includes("status") && (lower.includes("cliente") || lower.includes("aluno"))) {
+          headerIndex = i;
+          break;
+        }
+      }
+
+      const header = lines[headerIndex].split(",");
+      const colCliente = header.findIndex(h => /cliente|aluno/i.test(h));
+      let colOportunidade = header.findIndex(h => /oportunidade.*total.*aluno/i.test(h));
+      if (colOportunidade === -1) {
+        colOportunidade = header.findIndex(h => /oportunidade/i.test(h));
+      }
+
+      const result = [];
+
+      for (let i = headerIndex + 1; i < lines.length; i++) {
+        const cols = lines[i].split(",");
+        const cliente = (cols[colCliente] || "").trim();
+        if (!cliente) continue;
+
+        const rawTotal = colOportunidade >= 0 ? (cols[colOportunidade] || "") : "";
+        const valor = parseNumberBR(rawTotal);
+
+        result.push({
+          cliente,
+          oportunidadeTotal: valor
         });
+      }
+
+      return result;
     }
 
     function normalizeExperience(rows) {
@@ -745,6 +829,32 @@
       }));
     }
 
+    // Aba Vendas / Renovação
+    function normalizeVendas(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+      const hData = headers.find(h => /data/i.test(h)) || "";
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || "";
+      const hTipo = headers.find(h => /tipo/i.test(h)) || "";
+      const hValor = headers.find(h => /valor/i.test(h)) || "";
+
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => {
+          const dataStr = hData ? (r[hData] || "") : "";
+          const mesKey = getMonthKeyFromString(dataStr);
+          const mesLabel = mesKey ? monthLabelFromKey(mesKey) : "";
+          return {
+            data: dataStr,
+            cliente: r[hCliente] || "",
+            tipo: hTipo ? (r[hTipo] || "") : "",
+            valor: parseNumberBR(hValor ? (r[hValor] || "") : ""),
+            mesKey,
+            mesLabel: mesLabel || dataStr
+          };
+        });
+    }
+
     function isPrestEmDia(situacao) {
       const s = normalizeStr(situacao);
       if (!s) return false;
@@ -755,14 +865,15 @@
 
     function getFilteredJornada() {
       return allJornada.filter(j => {
-        let ok = true;
-        if (currentPlanoFilter !== "__all__") {
-          ok = ok && normalizeStr(j.plano) === normalizeStr(currentPlanoFilter);
+        if (currentPlanoFilter !== "__all__" &&
+            normalizeStr(j.plano) !== normalizeStr(currentPlanoFilter)) {
+          return false;
         }
         if (currentChurnMesFilter !== "__all__") {
-          ok = ok && normalizeStr(j.mesChurn || "") === normalizeStr(currentChurnMesFilter);
+          const key = j.mesChurnKey || "";
+          if (!key || key !== currentChurnMesFilter) return false;
         }
-        return ok;
+        return true;
       });
     }
 
@@ -779,7 +890,8 @@
       });
     }
 
-    // KPIs
+    // ------------------ KPIs ------------------
+
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
@@ -826,7 +938,8 @@
         `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
-    // Gráficos
+    // ------------------ Gráficos ------------------
+
     function buildAvancoChart(jornadaData) {
       const ctx = document.getElementById("chart-avanco").getContext("2d");
       if (chartAvanco) chartAvanco.destroy();
@@ -1005,7 +1118,108 @@
       `;
     }
 
-    // Tabela de atenção
+    function buildVendasChartAndSummary(vendasData, totalAlunosBase) {
+      const ctx = document.getElementById("chart-vendas").getContext("2d");
+      if (chartVendas) chartVendas.destroy();
+
+      if (!vendasData.length) {
+        chartVendas = new Chart(ctx, {
+          type: "bar",
+          data: { labels: [], datasets: [] },
+          options: { plugins: { legend: { display: false } } }
+        });
+        document.getElementById("vendas-resumo").textContent =
+          "Sem registros na aba Vendas/Renovação.";
+        return;
+      }
+
+      const agrupado = {};
+      let totalUpsellValor = 0;
+      let totalRenovValor = 0;
+      let totalNegocios = 0;
+
+      vendasData.forEach(v => {
+        const key = v.mesKey || "Sem data";
+        if (!agrupado[key]) {
+          agrupado[key] = { label: v.mesLabel || key, upsell: 0, renov: 0 };
+        }
+        const lowerTipo = normalizeStr(v.tipo);
+        if (lowerTipo.includes("renov")) {
+          agrupado[key].renov += v.valor || 0;
+          totalRenovValor += v.valor || 0;
+        } else {
+          agrupado[key].upsell += v.valor || 0;
+          totalUpsellValor += v.valor || 0;
+        }
+        totalNegocios++;
+      });
+
+      const keysOrdenados = Object.keys(agrupado).sort();
+      const labels = keysOrdenados.map(k => agrupado[k].label);
+      const upsellData = keysOrdenados.map(k => agrupado[k].upsell);
+      const renovData = keysOrdenados.map(k => agrupado[k].renov);
+
+      chartVendas = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Upsell",
+              data: upsellData,
+              backgroundColor: "rgba(31, 115, 183, 0.7)",
+              borderColor: "#1F73B7",
+              borderWidth: 1,
+              borderRadius: 6,
+              maxBarThickness: 40
+            },
+            {
+              label: "Renovação",
+              data: renovData,
+              backgroundColor: "rgba(21, 129, 82, 0.7)",
+              borderColor: "#158152",
+              borderWidth: 1,
+              borderRadius: 6,
+              maxBarThickness: 40
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => formatCurrencyBRL(v) }
+            }
+          }
+        }
+      });
+
+      const base = totalAlunosBase || allJornada.length || 1;
+      const taxaUpsell = base ? (vendasData.filter(v => !normalizeStr(v.tipo).includes("renov")).length / base) * 100 : 0;
+      const taxaRenov = base ? (vendasData.filter(v => normalizeStr(v.tipo).includes("renov")).length / base) * 100 : 0;
+
+      document.getElementById("vendas-resumo").innerHTML = `
+        <p><strong>${totalNegocios}</strong> negócio(s) registrados na aba Vendas/Renovação.</p>
+        <p>
+          Upsell faturado: <strong>${formatCurrencyBRL(totalUpsellValor)}</strong> 
+          | Renovação faturada: <strong>${formatCurrencyBRL(totalRenovValor)}</strong>.
+        </p>
+        <p style="font-size:11px;color:#7A8194;">
+          Taxas aproximadas (nº de vendas / base atual de alunos): 
+          Upsell ≈ ${formatPercent(taxaUpsell)} | Renovação ≈ ${formatPercent(taxaRenov)}.
+        </p>
+      `;
+    }
+
+    // ------------------ Tabelas ------------------
+
     function buildAttentionTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("attention-body");
       tbody.innerHTML = "";
@@ -1100,7 +1314,6 @@
       });
     }
 
-    // Encerrados = avanço >= 99%
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
@@ -1179,7 +1392,8 @@
       });
     }
 
-    // Modal
+    // ------------------ Modal ------------------
+
     function openAlunoModal(nome) {
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
@@ -1200,6 +1414,7 @@
             <p><strong>Avanço:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
             <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "–") : "–"}</p>
             <p><strong>Prazo:</strong> ${j ? (j.prazo || "–") : "–"}</p>
+            <p><strong>Mês do churn:</strong> ${j ? (j.mesChurnLabel || "–") : "–"}</p>
           </div>
           <div class="modal-block">
             <h3>Prestação de contas</h3>
@@ -1232,13 +1447,15 @@
       if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
     });
 
-    // Filtros
+    // ------------------ Filtros ------------------
+
     function initFilters() {
       const planoSelect = document.getElementById("filter-plano");
       const churnMesSelect = document.getElementById("filter-churn-mes");
       const mesSelect = document.getElementById("filter-exp-mes");
       const encontroSelect = document.getElementById("filter-exp-encontro");
 
+      // Planos
       const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
       planos.sort();
       planos.forEach(p => {
@@ -1253,20 +1470,29 @@
         renderAll();
       });
 
-      const mesesChurn = Array.from(new Set(allJornada.map(j => j.mesChurn).filter(Boolean)));
-      mesesChurn.sort();
-      mesesChurn.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        churnMesSelect.appendChild(opt);
+      // Meses de churn (a partir da Jornada)
+      const mesMap = new Map();
+      allJornada.forEach(j => {
+        if (!j.mesChurnKey) return;
+        const label = j.mesChurnLabel || j.mesChurnKey;
+        mesMap.set(j.mesChurnKey, label);
       });
+
+      Array.from(mesMap.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .forEach(([key, label]) => {
+          const opt = document.createElement("option");
+          opt.value = key;
+          opt.textContent = label;
+          churnMesSelect.appendChild(opt);
+        });
 
       churnMesSelect.addEventListener("change", () => {
         currentChurnMesFilter = churnMesSelect.value;
         renderAll();
       });
 
+      // Experience – Mês
       const meses = Array.from(new Set(allExp.map(e => e.mes).filter(Boolean)));
       meses.sort();
       meses.forEach(m => {
@@ -1276,6 +1502,7 @@
         mesSelect.appendChild(opt);
       });
 
+      // Experience – Encontro
       const encontros = Array.from(new Set(allExp.map(e => e.encontro).filter(Boolean)));
       encontros.sort();
       encontros.forEach(en => {
@@ -1296,6 +1523,8 @@
       });
     }
 
+    // ------------------ Render geral ------------------
+
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
       const expFiltrada = getFilteredExperience();
@@ -1308,21 +1537,26 @@
       buildExperienceSummary(expFiltrada);
       buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
       buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
+      buildVendasChartAndSummary(allVendas, jornadaFiltrada.length);
     }
+
+    // ------------------ Carregamento inicial ------------------
 
     async function loadAllData() {
       try {
-        const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
-          fetchCsv(URL_JORNADA),
-          fetchCsv(URL_PRESTACAO),
-          fetchCsv(URL_BATALHA),
-          fetchCsv(URL_EXPERIENCE)
+        const [jornadaRows, prestRows, batalhaText, expRows, vendasRows] = await Promise.all([
+          fetchCsvGeneric(URL_JORNADA),
+          fetchCsvGeneric(URL_PRESTACAO),
+          fetchText(URL_BATALHA),
+          fetchCsvGeneric(URL_EXPERIENCE),
+          fetchCsvGeneric(URL_VENDAS)
         ]);
 
         allJornada = normalizeJornada(jornadaRows);
         allPrest = normalizePrestacao(prestRows);
-        allBnav = normalizeBatalha(batalhaRows);
+        allBnav = normalizeBatalhaFromText(batalhaText);
         allExp = normalizeExperience(expRows);
+        allVendas = normalizeVendas(vendasRows);
 
         document.getElementById("loading-global").textContent = "Dados carregados.";
 
