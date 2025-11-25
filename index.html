@@ -435,6 +435,12 @@
         </select>
       </div>
       <div class="filter-group">
+        <label for="filter-churn-mes">Mês do churn</label>
+        <select id="filter-churn-mes">
+          <option value="__all__">Todos</option>
+        </select>
+      </div>
+      <div class="filter-group">
         <label for="filter-exp-mes">Mês (Experience)</label>
         <select id="filter-exp-mes">
           <option value="__all__">Todos os meses</option>
@@ -454,7 +460,7 @@
         <div class="card-header">
           <div>
             <div class="card-title">Avanço da jornada por aluno</div>
-            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano).</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano / mês de churn).</div>
           </div>
           <span class="pill">Jornada do aluno</span>
         </div>
@@ -503,7 +509,7 @@
             <div class="card-title">Engajamento – Let's GO Experience</div>
             <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
           </div>
-          <span class="pill">Experience</span>
+        <span class="pill">Experience</span>
         </div>
         <div id="experience-summary" style="font-size:12px;color:#444;"></div>
       </div>
@@ -586,6 +592,7 @@
     let allExp = [];
 
     let currentPlanoFilter = "__all__";
+    let currentChurnMesFilter = "__all__";
     let currentExpMesFilter = "__all__";
     let currentExpEncontroFilter = "__all__";
 
@@ -594,38 +601,12 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
-      const rawLines = text
-        .replace(/\r/g, "\n")
-        .split("\n")
-        .filter(l => l.trim() !== "");
-
-      if (!rawLines.length) return [];
-
-      const headerLine = rawLines[0];
-
-      const commaCount = (headerLine.match(/,/g) || []).length;
-      const semicolonCount = (headerLine.match(/;/g) || []).length;
-      const tabCount = (headerLine.match(/\t/g) || []).length;
-
-      let sep = ",";
-      if (semicolonCount > commaCount && semicolonCount >= tabCount) {
-        sep = ";";
-      } else if (tabCount > commaCount && tabCount > semicolonCount) {
-        sep = "\t";
-      }
-
-      function splitLine(line) {
-        return line.split(sep).map(part =>
-          part.replace(/^"|"$/g, "").trim()
-        );
-      }
-
-      const headers = splitLine(headerLine);
-
-      return rawLines.slice(1).map(line => {
-        const cols = splitLine(line);
+      const lines = text.trim().split(/\r?\n/).filter(l => l.trim() !== "");
+      if (!lines.length) return [];
+      const headers = lines[0].split(",").map(h => h.trim());
+      return lines.slice(1).map(line => {
+        const cols = line.split(",");
         const obj = {};
         headers.forEach((h, i) => {
           obj[h] = (cols[i] || "").trim();
@@ -653,52 +634,13 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // Parser numérico robusto para BRL (ex: 20.300,00 | 20.300 | 20300 | 3,60)
     function parseNumberBR(s) {
-      if (s == null) return 0;
-      let v = s.toString().trim();
-      if (!v) return 0;
-
-      // tira acento e qualquer coisa que não seja número, ponto, vírgula ou sinal
+      if (!s) return 0;
+      let v = s.toString();
       v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      v = v.replace(/[^0-9,.\-]+/g, "");
+      v = v.replace(/[^0-9,.-]+/g, "");
       if (!v) return 0;
-
-      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/; // 20.300,00
-      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;        // 20.300
-      const commaDecimalRegex          = /^\d+(,\d+)?$/;               // 20300,00 ou 20300,5
-      const dotDecimalRegex            = /^\d+(\.\d+)?$/;              // 20300.00
-
-      if (brThousandsAndDecimalRegex.test(v)) {
-        // 20.300,00 -> 20300.00
-        v = v.replace(/\./g, "").replace(",", ".");
-      } else if (brThousandsOnlyRegex.test(v)) {
-        // 20.300 -> 20300
-        v = v.replace(/\./g, "");
-      } else if (commaDecimalRegex.test(v)) {
-        // 20300,50 -> 20300.50
-        v = v.replace(",", ".");
-      } else if (dotDecimalRegex.test(v)) {
-        // 20300.50 (já ok)
-      } else {
-        // fallback heurístico
-        const hasComma = v.includes(",");
-        const hasDot = v.includes(".");
-        if (hasComma && hasDot) {
-          const lastComma = v.lastIndexOf(",");
-          const lastDot = v.lastIndexOf(".");
-          if (lastComma > lastDot) {
-            v = v.replace(/\./g, "").replace(",", ".");
-          } else {
-            v = v.replace(/,/g, "");
-          }
-        } else if (hasComma && !hasDot) {
-          v = v.replace(",", ".");
-        } else {
-          v = v.replace(/,/g, "");
-        }
-      }
-
+      v = v.replace(/\./g, "").replace(",", ".");
       const n = parseFloat(v);
       return isNaN(n) ? 0 : n;
     }
@@ -731,6 +673,7 @@
       const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
       const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
       const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
+      const hMesChurn = headers.find(h => /m[eê]s.*churn/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
@@ -744,7 +687,8 @@
             statusPlano: hStatusPlano ? (r[hStatusPlano] || "") : "",
             avancoPercent: avancoPercent || 0,
             prazo: hPrazo ? (r[hPrazo] || "") : "",
-            riscoChurn: hRisco ? (r[hRisco] || "") : ""
+            riscoChurn: hRisco ? (r[hRisco] || "") : "",
+            mesChurn: hMesChurn ? (r[hMesChurn] || "") : ""
           };
         });
     }
@@ -763,42 +707,15 @@
         }));
     }
 
-    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-
-      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback (muito comum ser o "Cliente")
-      let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
-      if (!hAluno) {
-        hAluno = headers[1] || headers[0];
-      }
-
-      let hTotal =
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || headers[0];
+      const hTotal =
         headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
         headers.find(h => /total.*aluno/i.test(h)) ||
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
-
-      // Se ainda não encontrar, tenta heurística: escolhe a coluna mais "numérica"
-      if (!hTotal) {
-        let bestCol = "";
-        let bestScore = -1;
-        headers.forEach(h => {
-          let score = 0;
-          rows.forEach(r => {
-            const val = r[h];
-            if (!val) return;
-            const n = parseNumberBR(val);
-            if (!isNaN(n) && n !== 0) score++;
-          });
-          if (score > bestScore) {
-            bestScore = score;
-            bestCol = h;
-          }
-        });
-        hTotal = bestCol || headers[0];
-      }
 
       return rows
         .filter(r => (r[hAluno] || "").trim() !== "")
@@ -837,8 +754,16 @@
     }
 
     function getFilteredJornada() {
-      if (currentPlanoFilter === "__all__") return allJornada;
-      return allJornada.filter(j => normalizeStr(j.plano) === normalizeStr(currentPlanoFilter));
+      return allJornada.filter(j => {
+        let ok = true;
+        if (currentPlanoFilter !== "__all__") {
+          ok = ok && normalizeStr(j.plano) === normalizeStr(currentPlanoFilter);
+        }
+        if (currentChurnMesFilter !== "__all__") {
+          ok = ok && normalizeStr(j.mesChurn || "") === normalizeStr(currentChurnMesFilter);
+        }
+        return ok;
+      });
     }
 
     function getFilteredExperience() {
@@ -867,13 +792,11 @@
         : 0;
 
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[normalizeStr(p.cliente)] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
 
       let prestEmDia = 0;
       jornadaData.forEach(j => {
-        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const p = prestPorCliente[j.cliente];
         const sit = p ? p.situacaoAtual : "";
         if (isPrestEmDia(sit)) prestEmDia++;
       });
@@ -994,13 +917,11 @@
 
       const totalAlunos = jornadaData.length;
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[normalizeStr(p.cliente)] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
 
       let emDia = 0;
       jornadaData.forEach(j => {
-        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const p = prestPorCliente[j.cliente];
         const sit = p ? p.situacaoAtual : "";
         if (isPrestEmDia(sit)) emDia++;
       });
@@ -1090,21 +1011,17 @@
       tbody.innerHTML = "";
 
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[normalizeStr(p.cliente)] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
 
       const bnavPorCliente = {};
-      bnavData.forEach(b => {
-        bnavPorCliente[normalizeStr(b.cliente)] = b;
-      });
+      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
 
       const rows = [];
 
       jornadaData.forEach(j => {
         const cliente = j.cliente;
-        const prest = prestPorCliente[normalizeStr(cliente)];
-        const bnav = bnavPorCliente[normalizeStr(cliente)];
+        const prest = prestPorCliente[cliente];
+        const bnav = bnavPorCliente[cliente];
 
         const risco = j.riscoChurn || "";
         const prazo = j.prazo || "";
@@ -1189,14 +1106,10 @@
       tbody.innerHTML = "";
 
       const prestPorCliente = {};
-      prestData.forEach(p => {
-        prestPorCliente[normalizeStr(p.cliente)] = p;
-      });
+      prestData.forEach(p => { prestPorCliente[p.cliente] = p; });
 
       const bnavPorCliente = {};
-      bnavData.forEach(b => {
-        bnavPorCliente[normalizeStr(b.cliente)] = b;
-      });
+      bnavData.forEach(b => { bnavPorCliente[b.cliente] = b; });
 
       const rows = [];
 
@@ -1205,8 +1118,8 @@
         if (avanco < 99) return;
 
         const cliente = j.cliente;
-        const prest = prestPorCliente[normalizeStr(cliente)];
-        const bnav = bnavPorCliente[normalizeStr(cliente)];
+        const prest = prestPorCliente[cliente];
+        const bnav = bnavPorCliente[cliente];
 
         const prestSit = prest ? (prest.situacaoAtual || "") : "";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
@@ -1271,12 +1184,10 @@
       const modalOverlay = document.getElementById("aluno-modal-overlay");
       const modalContent = document.getElementById("modal-content");
 
-      const nomeNorm = normalizeStr(nome);
-
-      const j = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const prest = allPrest.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const bnav = allBnav.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const expList = allExp.filter(a => normalizeStr(a.aluno) === nomeNorm);
+      const j = allJornada.find(a => a.cliente === nome);
+      const prest = allPrest.find(a => a.cliente === nome);
+      const bnav = allBnav.find(a => a.cliente === nome);
+      const expList = allExp.filter(a => a.aluno === nome);
 
       modalContent.innerHTML = `
         <div class="modal-header">
@@ -1324,6 +1235,7 @@
     // Filtros
     function initFilters() {
       const planoSelect = document.getElementById("filter-plano");
+      const churnMesSelect = document.getElementById("filter-churn-mes");
       const mesSelect = document.getElementById("filter-exp-mes");
       const encontroSelect = document.getElementById("filter-exp-encontro");
 
@@ -1338,6 +1250,20 @@
 
       planoSelect.addEventListener("change", () => {
         currentPlanoFilter = planoSelect.value;
+        renderAll();
+      });
+
+      const mesesChurn = Array.from(new Set(allJornada.map(j => j.mesChurn).filter(Boolean)));
+      mesesChurn.sort();
+      mesesChurn.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        churnMesSelect.appendChild(opt);
+      });
+
+      churnMesSelect.addEventListener("change", () => {
+        currentChurnMesFilter = churnMesSelect.value;
         renderAll();
       });
 
