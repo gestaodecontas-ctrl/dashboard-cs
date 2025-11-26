@@ -27,8 +27,6 @@
       --muted: #6b7280;
       --accent: #6366f1;
       --accent-soft: #eef2ff;
-      --danger: #f97373;
-      --success: #22c55e;
       --radius-lg: 16px;
       --radius-md: 12px;
       --shadow-soft: 0 14px 28px rgba(15, 23, 42, 0.08);
@@ -469,7 +467,8 @@
               <div class="card-title-block">
                 <span class="card-title">Potencial de Upsell / Renovação</span>
                 <span class="card-subtitle">
-                  Soma das oportunidades comerciais mapeadas na aba Vendas/Renovações.
+                  Soma das oportunidades comerciais mapeadas na aba Vendas/Renovações (coluna
+                  "Oportunidade total por aluno").
                 </span>
               </div>
             </div>
@@ -490,7 +489,7 @@
               <div class="card-title-block">
                 <span class="card-title">Oportunidades – Batalha Naval</span>
                 <span class="card-subtitle">
-                  Valor potencial de novos produtos / renovações por aluno (coluna de oportunidade).
+                  Valor potencial de novos produtos / renovações por aluno (coluna "Oportunidade total por aluno").
                 </span>
               </div>
               <div class="chip">Upsell & Renovação</div>
@@ -515,9 +514,7 @@
           <div class="chart-large-wrapper">
             <canvas id="chart-resultados"></canvas>
           </div>
-          <div class="card-footer" id="resumo-resultados">
-            <!-- preenchido via JS -->
-          </div>
+          <div class="card-footer" id="resumo-resultados"></div>
         </section>
 
         <!-- Mapa de risco e oportunidade (tabela CS) -->
@@ -615,6 +612,7 @@
       let v = String(value).trim();
       if (!v) return 0;
       v = v.replace(/\s/g, "").replace(/R\$/gi, "");
+      // remove pontos de milhar e troca vírgula por ponto
       v = v.replace(/\./g, "").replace(",", ".");
       const num = parseFloat(v);
       return isNaN(num) ? 0 : num;
@@ -669,9 +667,6 @@
         if (!FIELDS.risco && n.includes("risco")) {
           FIELDS.risco = name;
         }
-        if (!FIELDS.oportunidade && n.includes("oportunidade")) {
-          FIELDS.oportunidade = name;
-        }
         if (!FIELDS.tipoVenda && (n.includes("tipo") || n.includes("upsell") || n.includes("renovacao"))) {
           FIELDS.tipoVenda = name;
         }
@@ -695,9 +690,16 @@
         }
       });
 
-      // Fallback de oportunidade para coluna N, se existir e ainda não mapear
-      if (!FIELDS.oportunidade && headerFields.length > 13) {
-        FIELDS.oportunidade = headerFields[13]; // índice 13 -> coluna N
+      // MARCA explicitamente a coluna de oportunidade que você usou
+      const nomeExatoOportunidade = "Oportunidade total por aluno";
+      if (headerFields.includes(nomeExatoOportunidade)) {
+        FIELDS.oportunidade = nomeExatoOportunidade;
+      } else {
+        // fallback: procura qualquer coluna com "oportunidade" no nome
+        const found = headerFields.find((name) =>
+          normalizeFieldName(name).includes("oportunidade")
+        );
+        if (found) FIELDS.oportunidade = found;
       }
     }
 
@@ -774,7 +776,7 @@
     function updatePotencial() {
       if (!FIELDS.oportunidade) {
         kpiPotencial.textContent = "R$ 0,00";
-        kpiPotencialMeta.textContent = "Coluna de oportunidade não localizada.";
+        kpiPotencialMeta.textContent = "Coluna 'Oportunidade total por aluno' não localizada.";
         return;
       }
 
