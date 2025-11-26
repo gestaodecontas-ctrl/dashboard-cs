@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard Vendas - GO</title>
+  <title>Dashboard – CS, Upsell & Renovação</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Fonte -->
@@ -13,23 +13,25 @@
     rel="stylesheet"
   />
 
-  <!-- PapaParse para ler o CSV -->
+  <!-- PapaParse (CSV) -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
   <style>
     :root {
-      --bg: #f5f5f7;
+      --bg-page: #f3f4fb;
       --bg-card: #ffffff;
-      --primary: #1f2933;
-      --primary-soft: #e5e7eb;
+      --border: #e5e7eb;
+      --primary: #101827;
+      --muted: #6b7280;
       --accent: #6366f1;
       --accent-soft: #eef2ff;
-      --text: #111827;
-      --text-soft: #6b7280;
-      --border: #e5e7eb;
-      --radius-lg: 14px;
-      --radius-md: 10px;
-      --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.06);
+      --danger: #f97373;
+      --success: #22c55e;
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --shadow-soft: 0 14px 28px rgba(15, 23, 42, 0.08);
     }
 
     * {
@@ -40,40 +42,28 @@
 
     body {
       font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top left, #eef2ff, #f9fafb 35%, #f3f4f6);
-      color: var(--text);
+      background: radial-gradient(circle at top left, #e5e7ff 0, #f1f5f9 40%, #f9fafb 75%);
+      color: var(--primary);
       padding: 24px;
     }
 
     .page {
-      max-width: 1200px;
+      max-width: 1280px;
       margin: 0 auto;
     }
 
     header {
       display: flex;
       justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
       align-items: flex-end;
-      margin-bottom: 24px;
-      gap: 12px;
     }
 
-    header .title-block {
+    .title-block {
       display: flex;
       flex-direction: column;
       gap: 6px;
-    }
-
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: 0.02em;
-    }
-
-    header p {
-      font-size: 0.9rem;
-      color: var(--text-soft);
     }
 
     .badge {
@@ -90,11 +80,23 @@
     }
 
     .badge-dot {
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       border-radius: 999px;
       background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.25);
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
+    }
+
+    header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: var(--muted);
+      max-width: 640px;
     }
 
     .layout {
@@ -104,7 +106,7 @@
       align-items: flex-start;
     }
 
-    @media (max-width: 900px) {
+    @media (max-width: 980px) {
       .layout {
         grid-template-columns: 1fr;
       }
@@ -113,42 +115,41 @@
     /* Filtros */
     .filters-card {
       background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       border-radius: var(--radius-lg);
       padding: 16px 14px 18px;
       box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.25);
+      border: 1px solid rgba(148, 163, 184, 0.3);
     }
 
     .filters-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .filters-header h2 {
       font-size: 0.95rem;
       font-weight: 600;
-      color: var(--primary);
     }
 
     .filters-header span {
       font-size: 0.75rem;
-      color: var(--text-soft);
+      color: var(--muted);
     }
 
     .filter-group {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 4px;
       margin-bottom: 10px;
     }
 
     .filter-label {
       font-size: 0.78rem;
       font-weight: 500;
-      color: var(--text-soft);
+      color: var(--muted);
     }
 
     select {
@@ -158,183 +159,182 @@
       border: 1px solid var(--border);
       background-color: #fff;
       font-size: 0.8rem;
-      color: var(--text);
+      color: var(--primary);
       outline: none;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.06s ease;
       appearance: none;
       background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
         linear-gradient(135deg, #9ca3af 50%, transparent 50%);
       background-position: calc(100% - 14px) calc(50% - 3px), calc(100% - 9px) calc(50% - 3px);
       background-size: 6px 6px, 6px 6px;
       background-repeat: no-repeat;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
     }
 
     select:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35);
       transform: translateY(-1px);
     }
 
     .filters-actions {
       display: flex;
       justify-content: flex-end;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
-    button.btn-reset {
+    .btn-reset {
       border: none;
       background: transparent;
       font-size: 0.75rem;
       color: var(--accent);
       cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 999px;
       display: inline-flex;
       align-items: center;
       gap: 4px;
-      padding: 4px 6px;
-      border-radius: 999px;
-      transition: background 0.15s ease, transform 0.06s ease;
+      transition: background 0.15s ease, transform 0.05s ease;
     }
 
-    button.btn-reset:hover {
-      background: rgba(99, 102, 241, 0.06);
+    .btn-reset:hover {
+      background: rgba(99, 102, 241, 0.08);
       transform: translateY(-1px);
     }
 
-    /* Painel principal */
-    .main-card {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(10px);
+    /* Conteúdo principal */
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(12px);
       border-radius: var(--radius-lg);
-      padding: 16px 16px 18px;
+      padding: 14px 16px 16px;
       box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.25);
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
     }
 
-    /* KPIs */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-    }
-
-    @media (max-width: 900px) {
-      .kpi-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-
-    @media (max-width: 600px) {
-      .kpi-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    .kpi-card {
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      padding: 10px 10px;
-      background: linear-gradient(135deg, #f9fafb, #ffffff);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-card::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at top right, rgba(99, 102, 241, 0.08), transparent 55%);
-      pointer-events: none;
-    }
-
-    .kpi-label {
-      font-size: 0.75rem;
-      color: var(--text-soft);
-      font-weight: 500;
-    }
-
-    .kpi-value {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: var(--primary);
-      letter-spacing: 0.01em;
-    }
-
-    .kpi-sub {
-      font-size: 0.7rem;
-      color: var(--text-soft);
-    }
-
-    /* Tabela */
-    .table-wrapper {
-      margin-top: 4px;
-      border-radius: var(--radius-md);
-      border: 1px solid rgba(209, 213, 219, 0.9);
-      overflow: hidden;
-      background: #ffffff;
-    }
-
-    .table-header {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
+    .card-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 8px;
+      margin-bottom: 10px;
+      gap: 10px;
     }
 
-    .table-header-left {
+    .card-title-block {
       display: flex;
       flex-direction: column;
       gap: 2px;
     }
 
-    .table-title {
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* Card Potencial */
+    .potencial-body {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .potencial-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .potencial-meta {
       font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .btn-mapa-oportunidades {
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border-radius: 999px;
+      border: none;
+      background: #fee2e2;
+      color: #b91c1c;
+      cursor: default;
+    }
+
+    /* Grid alto nível */
+    .grid-top {
+      display: grid;
+      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .grid-top {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Batalha Naval */
+    .chart-wrapper {
+      position: relative;
+      height: 260px;
+    }
+
+    /* Resultados Upsell / Renovação */
+    .chart-large-wrapper {
+      position: relative;
+      height: 260px;
+    }
+
+    .card-footer {
+      margin-top: 6px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .card-footer strong {
       font-weight: 600;
       color: var(--primary);
     }
 
-    .table-subtitle {
-      font-size: 0.72rem;
-      color: var(--text-soft);
-    }
-
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: var(--accent-soft);
-      font-size: 0.7rem;
-      color: var(--accent);
-    }
-
-    .table-container {
-      max-height: 460px;
-      overflow: auto;
+    /* Tabela CS */
+    .cs-table-wrapper {
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      overflow: hidden;
+      margin-top: 8px;
+      background: #ffffff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.78rem;
-      min-width: 600px;
+      min-width: 640px;
     }
 
     thead {
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    thead tr {
       background: #f3f4f6;
     }
 
@@ -347,10 +347,9 @@
     }
 
     th {
-      font-size: 0.74rem;
       font-weight: 600;
+      font-size: 0.74rem;
       color: #4b5563;
-      position: relative;
     }
 
     tbody tr:nth-child(even) td {
@@ -361,18 +360,54 @@
       background: #eef2ff;
     }
 
+    .cs-table-scroll {
+      max-height: 280px;
+      overflow: auto;
+    }
+
+    .pill-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+
+    .pill-status.alto-risco {
+      background: #fef2f2;
+      color: #b91c1c;
+      border: 1px solid #fecaca;
+    }
+
+    .pill-status.saudavel {
+      background: #ecfdf3;
+      color: #15803d;
+      border: 1px solid #bbf7d0;
+    }
+
+    .pill-status.outro {
+      background: #eff6ff;
+      color: #1d4ed8;
+      border: 1px solid #bfdbfe;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: currentColor;
+    }
+
     .loading,
     .error-msg {
       font-size: 0.8rem;
-      color: var(--text-soft);
-      padding: 10px;
+      color: var(--muted);
+      padding: 10px 0;
     }
 
     .error-msg {
       color: #b91c1c;
-      background: #fef2f2;
-      border-radius: 8px;
-      border: 1px solid #fecaca;
     }
   </style>
 </head>
@@ -382,12 +417,12 @@
       <div class="title-block">
         <div class="badge">
           <span class="badge-dot"></span>
-          <span>Dash de Vendas – CSV GO</span>
+          <span>Dash CS & Upsell – Vendas/Renovação (CSV Único)</span>
         </div>
-        <h1>Visão de Vendas & Churn</h1>
+        <h1>Mapa de risco, oportunidades e resultados comerciais</h1>
         <p>
-          Dados carregados diretamente da aba <strong>VENDAS</strong> (Google Sheets CSV). Use os filtros ao lado para
-          analisar por mês de churn, cliente e acompanhar a oportunidade total por aluno (coluna N).
+          Visualização unificada da jornada dos alunos, potencial de upsell/renovação e resultados reais de vendas,
+          alimentada pela aba <strong>Vendas/Renovações</strong> da planilha.
         </p>
       </div>
     </header>
@@ -398,21 +433,21 @@
         <div class="filters-header">
           <div>
             <h2>Filtros</h2>
-            <span>Refine a visão da dash</span>
+            <span>Refine a visão da base</span>
           </div>
         </div>
 
-        <div class="filter-group" id="filter-mes-churn-group">
+        <div class="filter-group">
           <label for="filter-mes-churn" class="filter-label">Mês do churn</label>
           <select id="filter-mes-churn">
             <option value="">Todos os meses</option>
           </select>
         </div>
 
-        <div class="filter-group" id="filter-cliente-group">
-          <label for="filter-cliente" class="filter-label">Cliente</label>
-          <select id="filter-cliente">
-            <option value="">Todos os clientes</option>
+        <div class="filter-group">
+          <label for="filter-risco" class="filter-label">Risco</label>
+          <select id="filter-risco">
+            <option value="">Todos</option>
           </select>
         </div>
 
@@ -425,99 +460,166 @@
       </aside>
 
       <!-- CONTEÚDO PRINCIPAL -->
-      <main class="main-card">
-        <!-- KPIs -->
-        <section class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-label">Oportunidade total por aluno (filtrado)</div>
-            <div class="kpi-value" id="kpi-oportunidade-por-aluno">R$ 0,00</div>
-            <div class="kpi-sub">Soma da coluna N (apenas linhas visíveis)</div>
+      <div class="main">
+        <!-- GRID TOPO: Potencial + Batalha Naval -->
+        <section class="grid-top">
+          <!-- Potencial Upsell/Renovação -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-block">
+                <span class="card-title">Potencial de Upsell / Renovação</span>
+                <span class="card-subtitle">
+                  Soma das oportunidades comerciais mapeadas na aba Vendas/Renovações.
+                </span>
+              </div>
+            </div>
+            <div class="potencial-body">
+              <div class="potencial-value" id="kpi-potencial">R$ 0,00</div>
+              <div class="potencial-meta" id="kpi-potencial-meta">
+                0 aluno(s) com potencial comercial mapeado.
+              </div>
+              <button class="btn-mapa-oportunidades" type="button">
+                Mapa de oportunidades comerciais
+              </button>
+            </div>
           </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Quantidade de vendas</div>
-            <div class="kpi-value" id="kpi-qtd-vendas">0</div>
-            <div class="kpi-sub">Total de registros após os filtros</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Clientes únicos</div>
-            <div class="kpi-value" id="kpi-clientes-unicos">0</div>
-            <div class="kpi-sub">Baseado na coluna "Cliente"</div>
-          </div>
-          <div class="kpi-card">
-            <div class="kpi-label">Mês do churn selecionado</div>
-            <div class="kpi-value" id="kpi-mes-churn">Todos</div>
-            <div class="kpi-sub">Reflete o filtro aplicado</div>
+
+          <!-- Oportunidades – Batalha Naval -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title-block">
+                <span class="card-title">Oportunidades – Batalha Naval</span>
+                <span class="card-subtitle">
+                  Valor potencial de novos produtos / renovações por aluno (coluna de oportunidade).
+                </span>
+              </div>
+              <div class="chip">Upsell & Renovação</div>
+            </div>
+            <div class="chart-wrapper">
+              <canvas id="chart-batalha"></canvas>
+            </div>
           </div>
         </section>
 
-        <!-- TABELA -->
-        <section class="table-wrapper">
-          <div class="table-header">
-            <div class="table-header-left">
-              <span class="table-title">Registros detalhados</span>
-              <span class="table-subtitle">
-                Visualização linha a linha dos dados da aba VENDAS, após aplicação dos filtros.
+        <!-- Resultados Upsell & Renovação -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <span class="card-title">Resultados – Upsell & Renovação</span>
+              <span class="card-subtitle">
+                Vendas efetivadas por mês (aba Vendas/Renovações), separadas por tipo.
               </span>
             </div>
-            <span class="pill">
-              <span style="width:6px;height:6px;border-radius:999px;background:#22c55e;"></span>
-              <span id="pill-registros">0 registros</span>
-            </span>
+            <div class="chip">Resultados reais</div>
           </div>
-          <div class="table-container" id="table-container">
-            <div class="loading">Carregando dados do CSV...</div>
+          <div class="chart-large-wrapper">
+            <canvas id="chart-resultados"></canvas>
+          </div>
+          <div class="card-footer" id="resumo-resultados">
+            <!-- preenchido via JS -->
           </div>
         </section>
 
-        <div id="error-container"></div>
-      </main>
+        <!-- Mapa de risco e oportunidade (tabela CS) -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title-block">
+              <span class="card-title">Alunos que precisam de atenção do CS</span>
+              <span class="card-subtitle">
+                Mapa de risco e oportunidade – clique no nome do cliente (se quiser adaptar para link/modal).
+              </span>
+            </div>
+            <div class="chip">Prioridade de ação</div>
+          </div>
+
+          <div class="cs-table-wrapper">
+            <div class="cs-table-scroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Cliente</th>
+                    <th>Plano</th>
+                    <th>Avanço</th>
+                    <th>Prazo</th>
+                    <th>Risco</th>
+                    <th>Prestação</th>
+                    <th>Oportunidade</th>
+                  </tr>
+                </thead>
+                <tbody id="cs-table-body">
+                  <tr>
+                    <td colspan="7" class="loading">
+                      Carregando dados…
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <div id="error-container" class="error-msg"></div>
+      </div>
     </div>
   </div>
 
   <script>
-    // URL do CSV da aba VENDAS
+    // ================== CONFIGURAÇÃO BÁSICA ==================
     const CSV_URL =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
-    // Estado
     let originalData = [];
     let filteredData = [];
     let headerFields = [];
 
-    let mesChurnFieldName = null;
-    let clienteFieldName = null;
-    let oportunidadeAlunoFieldName = null; // coluna N (posição 13)
+    // Mapeamento de campos (será detectado por nome)
+    const FIELDS = {
+      mesChurn: null,
+      risco: null,
+      oportunidade: null,
+      tipoVenda: null,
+      valorVenda: null,
+      cliente: null,
+      plano: null,
+      avanco: null,
+      prazo: null,
+      prestacao: null,
+    };
 
+    // Referências DOM
     const mesChurnSelect = document.getElementById("filter-mes-churn");
-    const clienteSelect = document.getElementById("filter-cliente");
+    const riscoSelect = document.getElementById("filter-risco");
     const resetButton = document.getElementById("btn-reset");
-    const tableContainer = document.getElementById("table-container");
+
+    const kpiPotencial = document.getElementById("kpi-potencial");
+    const kpiPotencialMeta = document.getElementById("kpi-potencial-meta");
+    const csTableBody = document.getElementById("cs-table-body");
     const errorContainer = document.getElementById("error-container");
+    const resumoResultados = document.getElementById("resumo-resultados");
 
-    const kpiOportunidade = document.getElementById("kpi-oportunidade-por-aluno");
-    const kpiQtdVendas = document.getElementById("kpi-qtd-vendas");
-    const kpiClientesUnicos = document.getElementById("kpi-clientes-unicos");
-    const kpiMesChurn = document.getElementById("kpi-mes-churn");
-    const pillRegistros = document.getElementById("pill-registros");
+    let chartBatalha = null;
+    let chartResultados = null;
 
-    // Utilitário: converte string com vírgula/ponto para número
+    // ================== FUNÇÕES UTIL ==================
+    function normalizeFieldName(name) {
+      return name
+        .toString()
+        .trim()
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
     function toNumber(value) {
       if (value === null || value === undefined) return 0;
       let v = String(value).trim();
       if (!v) return 0;
-
-      // Remove espaços e símbolos comuns
       v = v.replace(/\s/g, "").replace(/R\$/gi, "");
-
-      // Troca ponto de milhar e vírgula de decimal
-      // Ex: 1.234,56 -> 1234.56 | 1234,56 -> 1234.56
       v = v.replace(/\./g, "").replace(",", ".");
-
       const num = parseFloat(v);
       return isNaN(num) ? 0 : num;
     }
 
-    // Formata número em moeda BR
     function formatCurrencyBR(value) {
       return value.toLocaleString("pt-BR", {
         style: "currency",
@@ -526,7 +628,7 @@
       });
     }
 
-    // Carrega CSV
+    // ================== CARREGAMENTO CSV ==================
     function loadCSV() {
       Papa.parse(CSV_URL, {
         download: true,
@@ -535,18 +637,17 @@
         complete: function (results) {
           try {
             headerFields = results.meta.fields || [];
-            originalData = (results.data || []).filter((row) => {
-              // filtra linhas totalmente vazias
-              return Object.values(row).some((v) => String(v || "").trim() !== "");
-            });
+            originalData = (results.data || []).filter((row) =>
+              Object.values(row).some((v) => String(v || "").trim() !== "")
+            );
 
             if (!headerFields.length || !originalData.length) {
               throw new Error("Não foi possível carregar dados válidos do CSV.");
             }
 
-            detectFieldNames();
-            buildFilterOptions();
-            applyFilters(); // primeira renderização
+            detectFields();
+            buildFilters();
+            applyFilters();
           } catch (err) {
             showError(err.message || "Erro ao processar o CSV.");
           }
@@ -557,186 +658,396 @@
       });
     }
 
-    // Detecta nomes das colunas importantes
-    function detectFieldNames() {
-      // Mês do churn - procura por variações
-      mesChurnFieldName =
-        headerFields.find((name) => {
-          if (!name) return false;
-          const n = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return (
-            n.includes("mes do churn") ||
-            n.includes("mes_churn") ||
-            n.includes("mes churn") ||
-            n.includes("mes_churn") ||
-            n.includes("mes_churn")
-          );
-        }) || null;
+    // ================== DETECÇÃO DE COLUNAS ==================
+    function detectFields() {
+      headerFields.forEach((name) => {
+        const n = normalizeFieldName(name);
 
-      // Cliente
-      clienteFieldName =
-        headerFields.find((name) => {
-          if (!name) return false;
-          const n = name.toLowerCase();
-          return n.includes("cliente");
-        }) || null;
+        if (!FIELDS.mesChurn && n.includes("mes") && n.includes("churn")) {
+          FIELDS.mesChurn = name;
+        }
+        if (!FIELDS.risco && n.includes("risco")) {
+          FIELDS.risco = name;
+        }
+        if (!FIELDS.oportunidade && n.includes("oportunidade")) {
+          FIELDS.oportunidade = name;
+        }
+        if (!FIELDS.tipoVenda && (n.includes("tipo") || n.includes("upsell") || n.includes("renovacao"))) {
+          FIELDS.tipoVenda = name;
+        }
+        if (!FIELDS.valorVenda && (n.includes("valor") || n.includes("fatur") || n.includes("receita"))) {
+          FIELDS.valorVenda = name;
+        }
+        if (!FIELDS.cliente && n.includes("cliente")) {
+          FIELDS.cliente = name;
+        }
+        if (!FIELDS.plano && n.includes("plano")) {
+          FIELDS.plano = name;
+        }
+        if (!FIELDS.avanco && (n.includes("avanco") || n.includes("progresso"))) {
+          FIELDS.avanco = name;
+        }
+        if (!FIELDS.prazo && n.includes("prazo")) {
+          FIELDS.prazo = name;
+        }
+        if (!FIELDS.prestacao && (n.includes("prestacao") || n.includes("preenchido"))) {
+          FIELDS.prestacao = name;
+        }
+      });
 
-      // Coluna N (posição 13)
-      if (headerFields.length > 13) {
-        oportunidadeAlunoFieldName = headerFields[13]; // índice 13 => coluna N
-      } else {
-        oportunidadeAlunoFieldName = null;
+      // Fallback de oportunidade para coluna N, se existir e ainda não mapear
+      if (!FIELDS.oportunidade && headerFields.length > 13) {
+        FIELDS.oportunidade = headerFields[13]; // índice 13 -> coluna N
       }
     }
 
-    // Monta opções dos filtros (Mês do churn e Cliente)
-    function buildFilterOptions() {
+    // ================== FILTROS ==================
+    function buildFilters() {
       // Mês do churn
-      if (mesChurnFieldName) {
+      if (FIELDS.mesChurn) {
         const setMes = new Set();
         originalData.forEach((row) => {
-          const v = (row[mesChurnFieldName] || "").toString().trim();
+          const v = (row[FIELDS.mesChurn] || "").toString().trim();
           if (v) setMes.add(v);
         });
-
-        const valores = Array.from(setMes).sort(); // ordenação lexicográfica - bom para AAAA-MM
-        valores.forEach((v) => {
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          mesChurnSelect.appendChild(opt);
-        });
+        Array.from(setMes)
+          .sort()
+          .forEach((v) => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            mesChurnSelect.appendChild(opt);
+          });
       } else {
-        // desabilita se não encontrar
         mesChurnSelect.innerHTML = '<option value="">(Coluna "Mês do churn" não encontrada)</option>';
         mesChurnSelect.disabled = true;
       }
 
-      // Cliente
-      if (clienteFieldName) {
-        const setClientes = new Set();
+      // Risco
+      if (FIELDS.risco) {
+        const setRisco = new Set();
         originalData.forEach((row) => {
-          const v = (row[clienteFieldName] || "").toString().trim();
-          if (v) setClientes.add(v);
+          const v = (row[FIELDS.risco] || "").toString().trim();
+          if (v) setRisco.add(v);
         });
-
-        const valores = Array.from(setClientes).sort((a, b) =>
-          a.localeCompare(b, "pt-BR", { sensitivity: "base" })
-        );
-        valores.forEach((v) => {
-          const opt = document.createElement("option");
-          opt.value = v;
-          opt.textContent = v;
-          clienteSelect.appendChild(opt);
-        });
+        Array.from(setRisco)
+          .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }))
+          .forEach((v) => {
+            const opt = document.createElement("option");
+            opt.value = v;
+            opt.textContent = v;
+            riscoSelect.appendChild(opt);
+          });
       } else {
-        clienteSelect.innerHTML = '<option value="">(Coluna "Cliente" não encontrada)</option>';
-        clienteSelect.disabled = true;
+        riscoSelect.innerHTML = '<option value="">(Coluna "Risco" não encontrada)</option>';
+        riscoSelect.disabled = true;
       }
     }
 
-    // Aplica filtros sobre originalData
     function applyFilters() {
       const selectedMes = mesChurnSelect.disabled ? "" : mesChurnSelect.value;
-      const selectedCliente = clienteSelect.disabled ? "" : clienteSelect.value;
+      const selectedRisco = riscoSelect.disabled ? "" : riscoSelect.value;
 
       filteredData = originalData.filter((row) => {
         let ok = true;
 
-        if (selectedMes && mesChurnFieldName) {
-          const valorMes = (row[mesChurnFieldName] || "").toString().trim();
-          if (valorMes !== selectedMes) ok = false;
+        if (selectedMes && FIELDS.mesChurn) {
+          const v = (row[FIELDS.mesChurn] || "").toString().trim();
+          if (v !== selectedMes) ok = false;
         }
 
-        if (selectedCliente && clienteFieldName) {
-          const valorCli = (row[clienteFieldName] || "").toString().trim();
-          if (valorCli !== selectedCliente) ok = false;
+        if (selectedRisco && FIELDS.risco) {
+          const v = (row[FIELDS.risco] || "").toString().trim();
+          if (v !== selectedRisco) ok = false;
         }
 
         return ok;
       });
 
-      renderTable();
-      updateKpis(selectedMes);
+      updatePotencial();
+      updateBatalhaNaval();
+      updateResultados();
+      updateCsTable();
     }
 
-    // Atualiza KPIs
-    function updateKpis(selectedMes) {
-      // Oportunidade total por aluno (coluna N)
-      let totalOportunidadeAluno = 0;
-      if (oportunidadeAlunoFieldName) {
-        filteredData.forEach((row) => {
-          totalOportunidadeAluno += toNumber(row[oportunidadeAlunoFieldName]);
-        });
-      }
-
-      // Quantidade de vendas (linhas filtradas)
-      const qtdVendas = filteredData.length;
-
-      // Clientes únicos
-      let qtdClientesUnicos = 0;
-      if (clienteFieldName) {
-        const setCli = new Set();
-        filteredData.forEach((row) => {
-          const v = (row[clienteFieldName] || "").toString().trim();
-          if (v) setCli.add(v);
-        });
-        qtdClientesUnicos = setCli.size;
-      }
-
-      kpiOportunidade.textContent = formatCurrencyBR(totalOportunidadeAluno);
-      kpiQtdVendas.textContent = qtdVendas.toString();
-      kpiClientesUnicos.textContent = qtdClientesUnicos.toString();
-      kpiMesChurn.textContent = selectedMes || "Todos";
-      pillRegistros.textContent = `${qtdVendas} registro${qtdVendas === 1 ? "" : "s"}`;
-    }
-
-    // Renderiza tabela com dados filtrados
-    function renderTable() {
-      if (!filteredData.length) {
-        tableContainer.innerHTML =
-          '<div class="loading">Nenhum registro encontrado com os filtros atuais.</div>';
+    // ================== POTENCIAL UPS/RENOV ==================
+    function updatePotencial() {
+      if (!FIELDS.oportunidade) {
+        kpiPotencial.textContent = "R$ 0,00";
+        kpiPotencialMeta.textContent = "Coluna de oportunidade não localizada.";
         return;
       }
 
-      // Cabeçalho
-      let theadHtml = "<thead><tr>";
-      headerFields.forEach((h) => {
-        theadHtml += `<th>${h || ""}</th>`;
-      });
-      theadHtml += "</tr></thead>";
+      let total = 0;
+      let alunosComOportunidade = 0;
+      const alunosSet = new Set();
 
-      // Corpo
-      let tbodyHtml = "<tbody>";
       filteredData.forEach((row) => {
-        tbodyHtml += "<tr>";
-        headerFields.forEach((h) => {
-          let v = row[h];
-          if (v === null || v === undefined) v = "";
-          tbodyHtml += `<td>${String(v)}</td>`;
-        });
-        tbodyHtml += "</tr>";
+        const valor = toNumber(row[FIELDS.oportunidade]);
+        if (valor > 0) {
+          total += valor;
+          const cliente =
+            (FIELDS.cliente && row[FIELDS.cliente]) || "(sem nome)";
+          alunosSet.add(cliente);
+        }
       });
-      tbodyHtml += "</tbody>";
 
-      tableContainer.innerHTML = `<table>${theadHtml}${tbodyHtml}</table>`;
+      alunosComOportunidade = alunosSet.size;
+      kpiPotencial.textContent = formatCurrencyBR(total);
+      kpiPotencialMeta.textContent = `${alunosComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
+    // ================== BATALHA NAVAL ==================
+    function updateBatalhaNaval() {
+      if (!FIELDS.oportunidade) {
+        if (chartBatalha) chartBatalha.destroy();
+        const ctx = document.getElementById("chart-batalha").getContext("2d");
+        chartBatalha = new Chart(ctx, {
+          type: "bar",
+          data: { labels: [], datasets: [] },
+        });
+        return;
+      }
+
+      // Agrupa por cliente
+      const mapa = new Map(); // cliente -> soma oportunidade
+      filteredData.forEach((row) => {
+        const valor = toNumber(row[FIELDS.oportunidade]);
+        if (valor <= 0) return;
+        const cliente =
+          (FIELDS.cliente && row[FIELDS.cliente]) || "(sem nome)";
+        mapa.set(cliente, (mapa.get(cliente) || 0) + valor);
+      });
+
+      const entries = Array.from(mapa.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 12); // top 12
+
+      const labels = entries.map((e) => e[0]);
+      const data = entries.map((e) => e[1]);
+
+      const ctx = document.getElementById("chart-batalha").getContext("2d");
+      if (chartBatalha) chartBatalha.destroy();
+
+      chartBatalha = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Oportunidade (por aluno)",
+              data,
+              borderWidth: 1.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (v) => formatCurrencyBR(v),
+              },
+            },
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const valor = context.parsed.y || 0;
+                  return formatCurrencyBR(valor);
+                },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    // ================== RESULTADOS UPS/RENOV ==================
+    function updateResultados() {
+      if (!FIELDS.tipoVenda || !FIELDS.valorVenda || !FIELDS.mesChurn) {
+        if (chartResultados) chartResultados.destroy();
+        const ctx = document.getElementById("chart-resultados").getContext("2d");
+        chartResultados = new Chart(ctx, {
+          type: "bar",
+          data: { labels: [], datasets: [] },
+        });
+        resumoResultados.textContent =
+          "Colunas obrigatórias (tipo, valor, mês) não foram localizadas.";
+        return;
+      }
+
+      // mapa: mes -> { upsell: total, renov: total }
+      const mapa = new Map();
+      filteredData.forEach((row) => {
+        const tipo = normalizeFieldName(row[FIELDS.tipoVenda] || "");
+        const mes = (row[FIELDS.mesChurn] || "").toString().trim() || "(sem mês)";
+        const valor = toNumber(row[FIELDS.valorVenda]);
+
+        if (!mapa.has(mes)) {
+          mapa.set(mes, { upsell: 0, renov: 0 });
+        }
+
+        const bucket = mapa.get(mes);
+        if (tipo.includes("upsell")) {
+          bucket.upsell += valor;
+        } else if (tipo.includes("renov")) {
+          bucket.renov += valor;
+        }
+      });
+
+      const entries = Array.from(mapa.entries()).sort((a, b) =>
+        a[0].localeCompare(b[0])
+      );
+
+      const labels = entries.map((e) => e[0]);
+      const upsellData = entries.map((e) => e[1].upsell);
+      const renovData = entries.map((e) => e[1].renov);
+
+      const ctx = document.getElementById("chart-resultados").getContext("2d");
+      if (chartResultados) chartResultados.destroy();
+
+      chartResultados = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [
+            {
+              label: "Upsell",
+              data: upsellData,
+              borderWidth: 1.5,
+            },
+            {
+              label: "Renovação",
+              data: renovData,
+              borderWidth: 1.5,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: (v) => formatCurrencyBR(v),
+              },
+            },
+          },
+          plugins: {
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const valor = context.parsed.y || 0;
+                  return `${context.dataset.label}: ${formatCurrencyBR(valor)}`;
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // resumo
+      const totalUpsell = upsellData.reduce((a, b) => a + b, 0);
+      const totalRenov = renovData.reduce((a, b) => a + b, 0);
+      const totalNegocios = filteredData.filter((row) =>
+        toNumber(row[FIELDS.valorVenda]) > 0
+      ).length;
+
+      resumoResultados.innerHTML = `
+        <strong>${totalNegocios}</strong> negócio(s) registrados na aba Vendas/Renovações. 
+        Upsell faturado: <strong>${formatCurrencyBR(totalUpsell)}</strong> |
+        Renovação faturada: <strong>${formatCurrencyBR(totalRenov)}</strong>.
+      `;
+    }
+
+    // ================== TABELA CS (MAPA RISCO) ==================
+    function updateCsTable() {
+      csTableBody.innerHTML = "";
+
+      if (!FIELDS.risco || !FIELDS.cliente) {
+        csTableBody.innerHTML = `
+          <tr><td colspan="7" class="loading">
+            Colunas mínimas para o mapa de risco (cliente / risco) não foram localizadas.
+          </td></tr>`;
+        return;
+      }
+
+      // Critério simples: alunos com risco ≠ "saudável" (case-insensitive)
+      const linhasCriticas = filteredData.filter((row) => {
+        const riscoRaw = (row[FIELDS.risco] || "").toString().trim();
+        const riscoNorm = normalizeFieldName(riscoRaw);
+        return riscoNorm && !riscoNorm.includes("saudavel");
+      });
+
+      if (!linhasCriticas.length) {
+        csTableBody.innerHTML = `
+          <tr><td colspan="7" class="loading">
+            Nenhum aluno em situação de risco com os filtros atuais.
+          </td></tr>`;
+        return;
+      }
+
+      linhasCriticas.forEach((row) => {
+        const cliente = (row[FIELDS.cliente] || "").toString().trim() || "—";
+        const plano = (FIELDS.plano && row[FIELDS.plano]) || "—";
+        const avanco = (FIELDS.avanco && row[FIELDS.avanco]) || "—";
+        const prazo = (FIELDS.prazo && row[FIELDS.prazo]) || "—";
+        const riscoRaw = (row[FIELDS.risco] || "").toString().trim() || "—";
+        const prest = (FIELDS.prestacao && row[FIELDS.prestacao]) || "—";
+        const oportunidade = FIELDS.oportunidade
+          ? formatCurrencyBR(toNumber(row[FIELDS.oportunidade]))
+          : "—";
+
+        const riscoNorm = normalizeFieldName(riscoRaw);
+        let riscoClass = "outro";
+        let riscoIcon = "⏳";
+        if (riscoNorm.includes("alto")) {
+          riscoClass = "alto-risco";
+          riscoIcon = "⚠️";
+        } else if (riscoNorm.includes("saudavel")) {
+          riscoClass = "saudavel";
+          riscoIcon = "🟢";
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><a href="#" style="color:#2563eb;text-decoration:underline;">${cliente}</a></td>
+          <td>${plano}</td>
+          <td>${avanco}</td>
+          <td>${prazo}</td>
+          <td>
+            <span class="pill-status ${riscoClass}">
+              <span class="dot"></span>
+              <span>${riscoIcon} ${riscoRaw}</span>
+            </span>
+          </td>
+          <td>${prest}</td>
+          <td>${oportunidade}</td>
+        `;
+        csTableBody.appendChild(tr);
+      });
+    }
+
+    // ================== ERROS ==================
     function showError(msg) {
-      tableContainer.innerHTML = "";
-      errorContainer.innerHTML = `<div class="error-msg">${msg}</div>`;
+      errorContainer.textContent = msg;
     }
 
-    // Eventos
+    // ================== EVENTOS ==================
     mesChurnSelect.addEventListener("change", applyFilters);
-    clienteSelect.addEventListener("change", applyFilters);
+    riscoSelect.addEventListener("change", applyFilters);
     resetButton.addEventListener("click", () => {
       if (!mesChurnSelect.disabled) mesChurnSelect.value = "";
-      if (!clienteSelect.disabled) clienteSelect.value = "";
+      if (!riscoSelect.disabled) riscoSelect.value = "";
       applyFilters();
     });
 
-    // Inicialização
     document.addEventListener("DOMContentLoaded", loadCSV);
   </script>
 </body>
