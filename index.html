@@ -2,1055 +2,1414 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <title>Dashboard – CS, Upsell & Renovação</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Fonte -->
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet"
-  />
-
-  <!-- PapaParse (CSV) -->
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-
+  <title>GO Educação – Controle de Sucesso do Cliente</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
-      --bg-page: #f3f4fb;
-      --bg-card: #ffffff;
-      --border: #e5e7eb;
-      --primary: #101827;
-      --muted: #6b7280;
-      --accent: #6366f1;
-      --accent-soft: #eef2ff;
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --shadow-soft: 0 14px 28px rgba(15, 23, 42, 0.08);
+      --cs-navy: #0A1A2F;
+      --cs-blue: #1F73B7;
+      --cs-yellow: #C8A300;
+      --cs-black: #000000;
+      --cs-white: #FFFFFF;
+      --cs-bg: #F5F6FA;
+      --cs-gray: #E3E6ED;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     body {
-      font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      background: radial-gradient(circle at top left, #e5e7ff 0, #f1f5f9 40%, #f9fafb 75%);
-      color: var(--primary);
-      padding: 24px;
+      margin: 0;
+      padding: 0;
+      background: var(--cs-bg);
+      color: var(--cs-black);
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue));
+      color: var(--cs-white);
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .topbar-title span {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .topbar-badge {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .topbar-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #20c997;
     }
 
     .page {
       max-width: 1280px;
       margin: 0 auto;
+      padding: 20px 16px 40px;
     }
 
-    header {
+    .loading {
+      font-size: 13px;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 10px;
+      color: var(--cs-navy);
       display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      margin-bottom: 20px;
-      align-items: flex-end;
+      align-items: center;
+      gap: 8px;
     }
 
-    .title-block {
+    .section-title span.icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--cs-yellow);
+      display: inline-block;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--cs-white);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
-    .badge {
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cs-black);
+    }
+
+    .kpi-extra {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .kpi-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
+      font-size: 11px;
       border-radius: 999px;
-      background: rgba(99, 102, 241, 0.06);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      font-size: 0.75rem;
-      color: var(--accent);
-      font-weight: 500;
+      padding: 2px 8px;
+      align-self: flex-start;
     }
 
-    .badge-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.22);
+    .tag-ok {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
     }
 
-    header h1 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
+    .tag-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #947000;
     }
 
-    header p {
-      font-size: 0.9rem;
-      color: var(--muted);
-      max-width: 640px;
+    .tag-risk {
+      background: rgba(220, 53, 69, 0.14);
+      color: #A32035;
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 260px minmax(0, 1fr);
-      gap: 18px;
-      align-items: flex-start;
-    }
-
-    @media (max-width: 980px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Filtros */
-    .filters-card {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(12px);
-      border-radius: var(--radius-lg);
-      padding: 16px 14px 18px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.3);
-    }
-
-    .filters-header {
+    .filters-row {
       display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-
-    .filters-header h2 {
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .filters-header span {
-      font-size: 0.75rem;
-      color: var(--muted);
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 14px 0 4px;
+      align-items: flex-end;
     }
 
     .filter-group {
       display: flex;
       flex-direction: column;
       gap: 4px;
-      margin-bottom: 10px;
+      font-size: 11px;
     }
 
-    .filter-label {
-      font-size: 0.78rem;
-      font-weight: 500;
-      color: var(--muted);
+    .filter-group label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
     }
 
-    select {
-      width: 100%;
-      padding: 7px 9px;
-      border-radius: 9px;
-      border: 1px solid var(--border);
-      background-color: #fff;
-      font-size: 0.8rem;
-      color: var(--primary);
-      outline: none;
-      appearance: none;
-      background-image: linear-gradient(45deg, transparent 50%, #9ca3af 50%),
-        linear-gradient(135deg, #9ca3af 50%, transparent 50%);
-      background-position: calc(100% - 14px) calc(50% - 3px), calc(100% - 9px) calc(50% - 3px);
-      background-size: 6px 6px, 6px 6px;
-      background-repeat: no-repeat;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.05s ease;
-    }
-
-    select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.35);
-      transform: translateY(-1px);
-    }
-
-    .filters-actions {
-      display: flex;
-      justify-content: flex-end;
-      margin-top: 8px;
-    }
-
-    .btn-reset {
-      border: none;
-      background: transparent;
-      font-size: 0.75rem;
-      color: var(--accent);
-      cursor: pointer;
-      padding: 4px 6px;
+    .filter-group select {
+      padding: 4px 8px;
       border-radius: 999px;
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      transition: background 0.15s ease, transform 0.05s ease;
+      border: 1px solid #D0D4E4;
+      font-size: 12px;
+      background: #FFF;
+      min-width: 160px;
     }
 
-    .btn-reset:hover {
-      background: rgba(99, 102, 241, 0.08);
-      transform: translateY(-1px);
+    .layout-two {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 18px;
+      margin-top: 12px;
     }
 
-    /* Conteúdo principal */
-    .main {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .layout-three {
+      display: grid;
+      grid-template-columns: 1.5fr 1.5fr 1.3fr;
+      gap: 18px;
+      margin-top: 16px;
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.96);
-      backdrop-filter: blur(12px);
-      border-radius: var(--radius-lg);
+      background: var(--cs-white);
+      border-radius: 14px;
       padding: 14px 16px 16px;
-      box-shadow: var(--shadow-soft);
-      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-      gap: 10px;
-    }
-
-    .card-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
     }
 
     .card-title {
-      font-size: 0.9rem;
+      font-size: 14px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--muted);
+      color: var(--cs-navy);
     }
 
     .card-subtitle {
-      font-size: 0.78rem;
-      color: var(--muted);
+      font-size: 11px;
+      color: #7A8194;
     }
 
-    .chip {
-      padding: 4px 10px;
+    .pill {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid var(--border);
-      font-size: 0.72rem;
-      color: var(--muted);
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #F4F5FA;
+      color: #555;
     }
 
-    /* Card Potencial */
-    .potencial-body {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+    canvas {
+      max-width: 100%;
     }
 
-    .potencial-value {
-      font-size: 1.5rem;
-      font-weight: 700;
+    .attention-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
     }
 
-    .potencial-meta {
-      font-size: 0.8rem;
-      color: var(--muted);
+    .attention-table th,
+    .attention-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid #E3E6ED;
+      text-align: left;
     }
 
-    .btn-mapa-oportunidades {
-      margin-top: 4px;
-      display: inline-flex;
-      align-items: center;
-      padding: 5px 10px;
-      font-size: 0.75rem;
-      border-radius: 999px;
-      border: none;
-      background: #fee2e2;
-      color: #b91c1c;
-      cursor: default;
+    .attention-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A8194;
     }
 
-    /* Grid alto nível */
-    .grid-top {
-      display: grid;
-      grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-      gap: 12px;
+    .link-cliente {
+      cursor: pointer;
+      color: var(--cs-blue);
+      text-decoration: underline;
     }
 
-    @media (max-width: 980px) {
-      .grid-top {
+    .section-enc {
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .layout-two {
+        grid-template-columns: 1fr;
+      }
+      .layout-three {
         grid-template-columns: 1fr;
       }
     }
 
-    /* Batalha Naval */
-    .chart-wrapper {
-      position: relative;
-      height: 260px;
+    @media (max-width: 700px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    /* Resultados Upsell / Renovação */
-    .chart-large-wrapper {
-      position: relative;
-      height: 260px;
-    }
-
-    .card-footer {
-      margin-top: 6px;
-      font-size: 0.75rem;
-      color: var(--muted);
-    }
-
-    .card-footer strong {
-      font-weight: 600;
-      color: var(--primary);
-    }
-
-    /* Tabela CS */
-    .cs-table-wrapper {
-      border-radius: var(--radius-md);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      margin-top: 8px;
-      background: #ffffff;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.78rem;
-      min-width: 640px;
-    }
-
-    thead {
-      background: #f3f4f6;
-    }
-
-    th,
-    td {
-      padding: 6px 8px;
-      border-bottom: 1px solid #e5e7eb;
-      text-align: left;
-      white-space: nowrap;
-    }
-
-    th {
-      font-weight: 600;
-      font-size: 0.74rem;
-      color: #4b5563;
-    }
-
-    tbody tr:nth-child(even) td {
-      background: #fafafa;
-    }
-
-    tbody tr:hover td {
-      background: #eef2ff;
-    }
-
-    .cs-table-scroll {
-      max-height: 280px;
-      overflow: auto;
-    }
-
-    .pill-status {
-      display: inline-flex;
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
       align-items: center;
-      gap: 4px;
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 999px;
+      justify-content: center;
+      z-index: 999;
     }
 
-    .pill-status.alto-risco {
-      background: #fef2f2;
-      color: #b91c1c;
-      border: 1px solid #fecaca;
+    .modal {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 720px;
+      width: 95%;
+      max-height: 90vh;
+      padding: 16px 18px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      overflow-y: auto;
+      position: relative;
     }
 
-    .pill-status.saudavel {
-      background: #ecfdf3;
-      color: #15803d;
-      border: 1px solid #bbf7d0;
+    .modal-close {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
     }
 
-    .pill-status.outro {
-      background: #eff6ff;
-      color: #1d4ed8;
-      border: 1px solid #bfdbfe;
+    .modal-header {
+      margin-bottom: 10px;
     }
 
-    .dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 999px;
-      background: currentColor;
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--cs-navy);
     }
 
-    .loading,
-    .error-msg {
-      font-size: 0.8rem;
-      color: var(--muted);
-      padding: 10px 0;
+    .modal-header span {
+      font-size: 12px;
+      color: #7A8194;
     }
 
-    .error-msg {
-      color: #b91c1c;
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1.2fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .modal-block {
+      background: #F7F8FD;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .modal-block h3 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: var(--cs-navy);
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <header>
-      <div class="title-block">
-        <div class="badge">
-          <span class="badge-dot"></span>
-          <span>Dash CS & Upsell – Vendas/Renovação (CSV Único)</span>
-        </div>
-        <h1>Mapa de risco, oportunidades e resultados comerciais</h1>
-        <p>
-          Visualização unificada da jornada dos alunos, potencial de upsell/renovação e resultados reais de vendas,
-          alimentada pela aba <strong>Vendas/Renovações</strong> da planilha.
-        </p>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">
+        <h1>GO Educação – Controle de Sucesso do Cliente</h1>
+        <span>Acompanhamento da jornada, prestação de contas, oportunidades e risco de churn.</span>
       </div>
-    </header>
+      <div class="topbar-badge">
+        <span class="topbar-dot"></span>
+        Dados carregados diretamente do Google Sheets
+      </div>
+    </div>
+  </header>
 
-    <div class="layout">
-      <!-- FILTROS -->
-      <aside class="filters-card">
-        <div class="filters-header">
+  <main class="page">
+    <div id="loading-global" class="loading">
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
+    </div>
+
+    <!-- KPIs -->
+    <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Alunos ativos</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
+        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
+        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Taxa de sucesso da jornada</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
+        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
+        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
+        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
+        <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Potencial de upsell / renovação</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
+        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
+        <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="filter-plano">Plano (Jornada)</label>
+        <select id="filter-plano">
+          <option value="__all__">Todos os planos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-mes">Mês (Experience)</label>
+        <select id="filter-exp-mes">
+          <option value="__all__">Todos os meses</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-encontro">Encontro (Experience)</label>
+        <select id="filter-exp-encontro">
+          <option value="__all__">Todos os encontros</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Gráficos principais -->
+    <div class="layout-two">
+      <div class="card">
+        <div class="card-header">
           <div>
-            <h2>Filtros</h2>
-            <span>Refine a visão da base</span>
+            <div class="card-title">Avanço da jornada por aluno</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano).</div>
           </div>
+          <span class="pill">Jornada do aluno</span>
         </div>
-
-        <div class="filter-group">
-          <label for="filter-mes-churn" class="filter-label">Mês do churn</label>
-          <select id="filter-mes-churn">
-            <option value="">Todos os meses</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label for="filter-risco" class="filter-label">Risco</label>
-          <select id="filter-risco">
-            <option value="">Todos</option>
-          </select>
-        </div>
-
-        <div class="filters-actions">
-          <button type="button" class="btn-reset" id="btn-reset">
-            <span>↺</span>
-            <span>Limpar filtros</span>
-          </button>
-        </div>
-      </aside>
-
-      <!-- CONTEÚDO PRINCIPAL -->
-      <div class="main">
-        <!-- GRID TOPO: Potencial + Batalha Naval -->
-        <section class="grid-top">
-          <!-- Potencial Upsell/Renovação -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title-block">
-                <span class="card-title">Potencial de Upsell / Renovação</span>
-                <span class="card-subtitle">
-                  Soma das oportunidades comerciais mapeadas na aba Vendas/Renovações (coluna
-                  "Oportunidade total por aluno").
-                </span>
-              </div>
-            </div>
-            <div class="potencial-body">
-              <div class="potencial-value" id="kpi-potencial">R$ 0,00</div>
-              <div class="potencial-meta" id="kpi-potencial-meta">
-                0 aluno(s) com potencial comercial mapeado.
-              </div>
-              <button class="btn-mapa-oportunidades" type="button">
-                Mapa de oportunidades comerciais
-              </button>
-            </div>
-          </div>
-
-          <!-- Oportunidades – Batalha Naval -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title-block">
-                <span class="card-title">Oportunidades – Batalha Naval</span>
-                <span class="card-subtitle">
-                  Valor potencial de novos produtos / renovações por aluno (coluna "Oportunidade total por aluno").
-                </span>
-              </div>
-              <div class="chip">Upsell & Renovação</div>
-            </div>
-            <div class="chart-wrapper">
-              <canvas id="chart-batalha"></canvas>
-            </div>
-          </div>
-        </section>
-
-        <!-- Resultados Upsell & Renovação -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title-block">
-              <span class="card-title">Resultados – Upsell & Renovação</span>
-              <span class="card-subtitle">
-                Vendas efetivadas por mês (aba Vendas/Renovações), separadas por tipo.
-              </span>
-            </div>
-            <div class="chip">Resultados reais</div>
-          </div>
-          <div class="chart-large-wrapper">
-            <canvas id="chart-resultados"></canvas>
-          </div>
-          <div class="card-footer" id="resumo-resultados"></div>
-        </section>
-
-        <!-- Mapa de risco e oportunidade (tabela CS) -->
-        <section class="card">
-          <div class="card-header">
-            <div class="card-title-block">
-              <span class="card-title">Alunos que precisam de atenção do CS</span>
-              <span class="card-subtitle">
-                Mapa de risco e oportunidade – clique no nome do cliente (se quiser adaptar para link/modal).
-              </span>
-            </div>
-            <div class="chip">Prioridade de ação</div>
-          </div>
-
-          <div class="cs-table-wrapper">
-            <div class="cs-table-scroll">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Cliente</th>
-                    <th>Plano</th>
-                    <th>Avanço</th>
-                    <th>Prazo</th>
-                    <th>Risco</th>
-                    <th>Prestação</th>
-                    <th>Oportunidade</th>
-                  </tr>
-                </thead>
-                <tbody id="cs-table-body">
-                  <tr>
-                    <td colspan="7" class="loading">
-                      Carregando dados…
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <div id="error-container" class="error-msg"></div>
+        <canvas id="chart-avanco"></canvas>
       </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">Saúde da base vs. necessidade de intervenção do CS.</div>
+          </div>
+          <span class="pill">Risco de churn</span>
+        </div>
+        <canvas id="chart-churn"></canvas>
+      </div>
+    </div>
+
+    <!-- Segunda linha -->
+    <div class="layout-three">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">Situação atual do envio de dados financeiros.</div>
+          </div>
+          <span class="pill">Prestação de contas</span>
+        </div>
+        <canvas id="chart-prestacao"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Oportunidades – Batalha Naval</div>
+            <div class="card-subtitle">Valor potencial de novos produtos / renovações por aluno.</div>
+          </div>
+          <span class="pill">Upsell & Renovação</span>
+        </div>
+        <canvas id="chart-oportunidades"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Engajamento – Let's GO Experience</div>
+            <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
+          </div>
+          <span class="pill">Experience</span>
+        </div>
+        <div id="experience-summary" style="font-size:12px;color:#444;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela de atenção -->
+    <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenção do CS</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Mapa de risco e oportunidade</div>
+          <div class="card-subtitle">
+            Clique no nome do cliente para abrir a visão individual (modal).
+          </div>
+        </div>
+        <span class="pill">Prioridade de ação</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Avanço</th>
+            <th>Prazo</th>
+            <th>Risco</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="attention-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Encerrados -->
+    <h2 class="section-title section-enc"><span class="icon"></span>Alunos encerrados / finalizados</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Base encerrada da jornada</div>
+          <div class="card-subtitle">
+            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído). Clique no nome para ver detalhes no modal.
+          </div>
+        </div>
+        <span class="pill">Encerrados</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Status do plano</th>
+            <th>Avanço</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="encerrados-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal individual -->
+  <div id="aluno-modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div id="modal-content"></div>
     </div>
   </div>
 
   <script>
-    // ================== CONFIGURAÇÃO BÁSICA ==================
-    const CSV_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
+    // URLs das abas
+    const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+    const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
+    const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
 
-    let originalData = [];
-    let filteredData = [];
-    let headerFields = [];
+    // 🔄 AGORA: Batalha Naval + Potencial usam a nova aba VENDAS/RENOVAÇÕES:
+    const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
-    // Mapeamento de campos (será detectado por nome)
-    const FIELDS = {
-      mesChurn: null,
-      risco: null,
-      oportunidade: null,
-      tipoVenda: null,
-      valorVenda: null,
-      cliente: null,
-      plano: null,
-      avanco: null,
-      prazo: null,
-      prestacao: null,
-    };
+    let allJornada = [];
+    let allPrest = [];
+    let allBnav = [];
+    let allExp = [];
 
-    // Referências DOM
-    const mesChurnSelect = document.getElementById("filter-mes-churn");
-    const riscoSelect = document.getElementById("filter-risco");
-    const resetButton = document.getElementById("btn-reset");
+    let currentPlanoFilter = "__all__";
+    let currentExpMesFilter = "__all__";
+    let currentExpEncontroFilter = "__all__";
 
-    const kpiPotencial = document.getElementById("kpi-potencial");
-    const kpiPotencialMeta = document.getElementById("kpi-potencial-meta");
-    const csTableBody = document.getElementById("cs-table-body");
-    const errorContainer = document.getElementById("error-container");
-    const resumoResultados = document.getElementById("resumo-resultados");
+    let chartAvanco = null;
+    let chartChurn = null;
+    let chartPrestacao = null;
+    let chartOportunidades = null;
 
-    let chartBatalha = null;
-    let chartResultados = null;
+    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
+    function parseCsv(text) {
+      const rawLines = text
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .filter(l => l.trim() !== "");
 
-    // ================== FUNÇÕES UTIL ==================
-    function normalizeFieldName(name) {
-      return name
-        .toString()
-        .trim()
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    }
+      if (!rawLines.length) return [];
 
-    function toNumber(value) {
-      if (value === null || value === undefined) return 0;
-      let v = String(value).trim();
-      if (!v) return 0;
-      v = v.replace(/\s/g, "").replace(/R\$/gi, "");
-      // remove pontos de milhar e troca vírgula por ponto
-      v = v.replace(/\./g, "").replace(",", ".");
-      const num = parseFloat(v);
-      return isNaN(num) ? 0 : num;
-    }
+      const headerLine = rawLines[0];
 
-    function formatCurrencyBR(value) {
-      return value.toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL",
-        maximumFractionDigits: 2,
-      });
-    }
+      const commaCount = (headerLine.match(/,/g) || []).length;
+      const semicolonCount = (headerLine.match(/;/g) || []).length;
+      const tabCount = (headerLine.match(/\t/g) || []).length;
 
-    // ================== CARREGAMENTO CSV ==================
-    function loadCSV() {
-      Papa.parse(CSV_URL, {
-        download: true,
-        header: true,
-        skipEmptyLines: true,
-        complete: function (results) {
-          try {
-            headerFields = results.meta.fields || [];
-            originalData = (results.data || []).filter((row) =>
-              Object.values(row).some((v) => String(v || "").trim() !== "")
-            );
+      let sep = ",";
+      if (semicolonCount > commaCount && semicolonCount >= tabCount) {
+        sep = ";";
+      } else if (tabCount > commaCount && tabCount > semicolonCount) {
+        sep = "\t";
+      }
 
-            if (!headerFields.length || !originalData.length) {
-              throw new Error("Não foi possível carregar dados válidos do CSV.");
-            }
-
-            detectFields();
-            buildFilters();
-            applyFilters();
-          } catch (err) {
-            showError(err.message || "Erro ao processar o CSV.");
-          }
-        },
-        error: function (err) {
-          showError("Erro ao carregar o CSV: " + (err?.message || "desconhecido"));
-        },
-      });
-    }
-
-    // ================== DETECÇÃO DE COLUNAS ==================
-    function detectFields() {
-      headerFields.forEach((name) => {
-        const n = normalizeFieldName(name);
-
-        if (!FIELDS.mesChurn && n.includes("mes") && n.includes("churn")) {
-          FIELDS.mesChurn = name;
-        }
-        if (!FIELDS.risco && n.includes("risco")) {
-          FIELDS.risco = name;
-        }
-        if (!FIELDS.tipoVenda && (n.includes("tipo") || n.includes("upsell") || n.includes("renovacao"))) {
-          FIELDS.tipoVenda = name;
-        }
-        if (!FIELDS.valorVenda && (n.includes("valor") || n.includes("fatur") || n.includes("receita"))) {
-          FIELDS.valorVenda = name;
-        }
-        if (!FIELDS.cliente && n.includes("cliente")) {
-          FIELDS.cliente = name;
-        }
-        if (!FIELDS.plano && n.includes("plano")) {
-          FIELDS.plano = name;
-        }
-        if (!FIELDS.avanco && (n.includes("avanco") || n.includes("progresso"))) {
-          FIELDS.avanco = name;
-        }
-        if (!FIELDS.prazo && n.includes("prazo")) {
-          FIELDS.prazo = name;
-        }
-        if (!FIELDS.prestacao && (n.includes("prestacao") || n.includes("preenchido"))) {
-          FIELDS.prestacao = name;
-        }
-      });
-
-      // MARCA explicitamente a coluna de oportunidade que você usou
-      const nomeExatoOportunidade = "Oportunidade total por aluno";
-      if (headerFields.includes(nomeExatoOportunidade)) {
-        FIELDS.oportunidade = nomeExatoOportunidade;
-      } else {
-        // fallback: procura qualquer coluna com "oportunidade" no nome
-        const found = headerFields.find((name) =>
-          normalizeFieldName(name).includes("oportunidade")
+      function splitLine(line) {
+        return line.split(sep).map(part =>
+          part.replace(/^"|"$/g, "").trim()
         );
-        if (found) FIELDS.oportunidade = found;
       }
+
+      const headers = splitLine(headerLine);
+
+      return rawLines.slice(1).map(line => {
+        const cols = splitLine(line);
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (cols[i] || "").trim();
+        });
+        return obj;
+      });
     }
 
-    // ================== FILTROS ==================
-    function buildFilters() {
-      // Mês do churn
-      if (FIELDS.mesChurn) {
-        const setMes = new Set();
-        originalData.forEach((row) => {
-          const v = (row[FIELDS.mesChurn] || "").toString().trim();
-          if (v) setMes.add(v);
-        });
-        Array.from(setMes)
-          .sort()
-          .forEach((v) => {
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            mesChurnSelect.appendChild(opt);
-          });
-      } else {
-        mesChurnSelect.innerHTML = '<option value="">(Coluna "Mês do churn" não encontrada)</option>';
-        mesChurnSelect.disabled = true;
-      }
-
-      // Risco
-      if (FIELDS.risco) {
-        const setRisco = new Set();
-        originalData.forEach((row) => {
-          const v = (row[FIELDS.risco] || "").toString().trim();
-          if (v) setRisco.add(v);
-        });
-        Array.from(setRisco)
-          .sort((a, b) => a.localeCompare(b, "pt-BR", { sensitivity: "base" }))
-          .forEach((v) => {
-            const opt = document.createElement("option");
-            opt.value = v;
-            opt.textContent = v;
-            riscoSelect.appendChild(opt);
-          });
-      } else {
-        riscoSelect.innerHTML = '<option value="">(Coluna "Risco" não encontrada)</option>';
-        riscoSelect.disabled = true;
-      }
+    function normalizeStr(s) {
+      if (!s) return "";
+      return s
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
     }
 
-    function applyFilters() {
-      const selectedMes = mesChurnSelect.disabled ? "" : mesChurnSelect.value;
-      const selectedRisco = riscoSelect.disabled ? "" : riscoSelect.value;
+    function parsePercentString(s) {
+      if (!s) return 0;
+      let v = s.toString().replace("%", "").trim();
+      v = v.replace(/[^0-9,.-]+/g, "");
+      v = v.replace(/\./g, "").replace(",", ".");
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    }
 
-      filteredData = originalData.filter((row) => {
+    // Parser numérico robusto para BRL (ex: 20.300,00 | 20.300 | 20300 | 3,60)
+    function parseNumberBR(s) {
+      if (s == null) return 0;
+      let v = s.toString().trim();
+      if (!v) return 0;
+
+      // tira acento e qualquer coisa que não seja número, ponto, vírgula ou sinal
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      v = v.replace(/[^0-9,.\-]+/g, "");
+      if (!v) return 0;
+
+      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/; // 20.300,00
+      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;        // 20.300
+      const commaDecimalRegex          = /^\d+(,\d+)?$/;               // 20300,00 ou 20300,5
+      const dotDecimalRegex            = /^\d+(\.\d+)?$/;              // 20300.00
+
+      if (brThousandsAndDecimalRegex.test(v)) {
+        // 20.300,00 -> 20300.00
+        v = v.replace(/\./g, "").replace(",", ".");
+      } else if (brThousandsOnlyRegex.test(v)) {
+        // 20.300 -> 20300
+        v = v.replace(/\./g, "");
+      } else if (commaDecimalRegex.test(v)) {
+        // 20300,50 -> 20300.50
+        v = v.replace(",", ".");
+      } else if (dotDecimalRegex.test(v)) {
+        // 20300.50 (já ok)
+      } else {
+        // fallback heurístico
+        const hasComma = v.includes(",");
+        const hasDot = v.includes(".");
+        if (hasComma && hasDot) {
+          const lastComma = v.lastIndexOf(",");
+          const lastDot = v.lastIndexOf(".");
+          if (lastComma > lastDot) {
+            v = v.replace(/\./g, "").replace(",", ".");
+          } else {
+            v = v.replace(/,/g, "");
+          }
+        } else if (hasComma && !hasDot) {
+          v = v.replace(",", ".");
+        } else {
+          v = v.replace(/,/g, "");
+        }
+      }
+
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatPercent(num) {
+      if (num == null || isNaN(num)) return "-";
+      return num.toFixed(1).replace(".", ",") + "%";
+    }
+
+    function formatCurrencyBRL(num) {
+      if (num == null || isNaN(num)) return "R$ 0,00";
+      return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    async function fetchCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      return parseCsv(text);
+    }
+
+    function normalizeJornada(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
+                           headers.find(h => /status do plano/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h) && h !== hStatusPlano) || "";
+      const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
+      const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
+      const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
+
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => {
+          const avancoStr = hAvanco ? (r[hAvanco] || "") : "";
+          const avancoPercent = parsePercentString(avancoStr);
+          return {
+            status: hStatus ? (r[hStatus] || "") : "",
+            plano: hPlano ? (r[hPlano] || "") : "",
+            cliente: r[hCliente] || "",
+            statusPlano: hStatusPlano ? (r[hStatusPlano] || "") : "",
+            avancoPercent: avancoPercent || 0,
+            prazo: hPrazo ? (r[hPrazo] || "") : "",
+            riscoChurn: hRisco ? (r[hRisco] || "") : ""
+          };
+        });
+    }
+
+    function normalizePrestacao(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hSituacao = headers.find(h => /situa.*atual/i.test(h)) ||
+                        headers.find(h => /situa/i.test(h)) || "";
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => ({
+          cliente: r[hCliente] || "",
+          situacaoAtual: hSituacao ? (r[hSituacao] || "") : ""
+        }));
+    }
+
+    // BATALHA NAVAL – usa "Cliente" + "Oportunidade total por aluno" (ou coluna numérica principal)
+    function normalizeBatalha(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
+      if (!hAluno) {
+        hAluno = headers[1] || headers[0];
+      }
+
+      let hTotal =
+        headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
+        headers.find(h => /total.*aluno/i.test(h)) ||
+        headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
+        "";
+
+      if (!hTotal) {
+        let bestCol = "";
+        let bestScore = -1;
+        headers.forEach(h => {
+          let score = 0;
+          rows.forEach(r => {
+            const val = r[h];
+            if (!val) return;
+            const n = parseNumberBR(val);
+            if (!isNaN(n) && n !== 0) score++;
+          });
+          if (score > bestScore) {
+            bestScore = score;
+            bestCol = h;
+          }
+        });
+        hTotal = bestCol || headers[0];
+      }
+
+      return rows
+        .filter(r => (r[hAluno] || "").trim() !== "")
+        .map(r => {
+          const totalRaw = hTotal ? (r[hTotal] || "") : "";
+          const total = parseNumberBR(totalRaw);
+          return {
+            cliente: r[hAluno] || "",
+            oportunidadeTotal: total
+          };
+        });
+    }
+
+    function normalizeExperience(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+      const hMes = headers.find(h => /m[eê]s/i.test(h)) || "";
+      const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
+      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || "";
+      const hStatus = headers.find(h => /status/i.test(h)) || "";
+
+      return rows.map(r => ({
+        mes: hMes ? (r[hMes] || "") : "",
+        encontro: hEncontro ? (r[hEncontro] || "") : "",
+        aluno: hAluno ? (r[hAluno] || "") : "",
+        status: hStatus ? (r[hStatus] || "") : ""
+      }));
+    }
+
+    function isPrestEmDia(situacao) {
+      const s = normalizeStr(situacao);
+      if (!s) return false;
+      if (!s.includes("preench")) return false;
+      if (s.includes("nao") || s.includes("não")) return false;
+      return true;
+    }
+
+    function getFilteredJornada() {
+      if (currentPlanoFilter === "__all__") return allJornada;
+      return allJornada.filter(j => normalizeStr(j.plano) === normalizeStr(currentPlanoFilter));
+    }
+
+    function getFilteredExperience() {
+      return allExp.filter(e => {
         let ok = true;
-
-        if (selectedMes && FIELDS.mesChurn) {
-          const v = (row[FIELDS.mesChurn] || "").toString().trim();
-          if (v !== selectedMes) ok = false;
+        if (currentExpMesFilter !== "__all__") {
+          ok = ok && normalizeStr(e.mes) === normalizeStr(currentExpMesFilter);
         }
-
-        if (selectedRisco && FIELDS.risco) {
-          const v = (row[FIELDS.risco] || "").toString().trim();
-          if (v !== selectedRisco) ok = false;
+        if (currentExpEncontroFilter !== "__all__") {
+          ok = ok && normalizeStr(e.encontro) === normalizeStr(currentExpEncontroFilter);
         }
-
         return ok;
       });
-
-      updatePotencial();
-      updateBatalhaNaval();
-      updateResultados();
-      updateCsTable();
     }
 
-    // ================== POTENCIAL UPS/RENOV ==================
-    function updatePotencial() {
-      if (!FIELDS.oportunidade) {
-        kpiPotencial.textContent = "R$ 0,00";
-        kpiPotencialMeta.textContent = "Coluna 'Oportunidade total por aluno' não localizada.";
-        return;
-      }
+    // KPIs
+    function buildKPIs(jornadaData, prestData, bnavData) {
+      const totalAlunos = jornadaData.length;
 
-      let total = 0;
-      let alunosComOportunidade = 0;
-      const alunosSet = new Set();
+      const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
+      const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
-      filteredData.forEach((row) => {
-        const valor = toNumber(row[FIELDS.oportunidade]);
-        if (valor > 0) {
-          total += valor;
-          const cliente =
-            (FIELDS.cliente && row[FIELDS.cliente]) || "(sem nome)";
-          alunosSet.add(cliente);
-        }
+      const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
+      const mediaAvanco = mediasAvanco.length
+        ? mediasAvanco.reduce((a, b) => a + b, 0) / mediasAvanco.length
+        : 0;
+
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
       });
 
-      alunosComOportunidade = alunosSet.size;
-      kpiPotencial.textContent = formatCurrencyBR(total);
-      kpiPotencialMeta.textContent = `${alunosComOportunidade} aluno(s) com potencial comercial mapeado.`;
+      let prestEmDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) prestEmDia++;
+      });
+      const taxaPrestacao = totalAlunos > 0 ? (prestEmDia / totalAlunos) * 100 : 0;
+
+      const totalOportunidades = bnavData.reduce(
+        (acc, cur) => acc + (cur.oportunidadeTotal || 0),
+        0
+      );
+      const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
+
+      document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
+      document.getElementById("kpi-total-alunos-extra").textContent =
+        `${concluidos} já concluíram a jornada.`;
+
+      document.getElementById("kpi-taxasucesso").textContent = formatPercent(taxaSucesso);
+      document.getElementById("kpi-taxasucesso-extra").textContent =
+        `Média de avanço: ${formatPercent(mediaAvanco)}.`;
+
+      document.getElementById("kpi-prestacao").textContent = formatPercent(taxaPrestacao);
+      document.getElementById("kpi-prestacao-extra").textContent =
+        `${prestEmDia} de ${totalAlunos} aluno(s) com prestação em dia.`;
+
+      document.getElementById("kpi-oportunidades").textContent =
+        formatCurrencyBRL(totalOportunidades);
+      document.getElementById("kpi-oportunidades-extra").textContent =
+        `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
     }
 
-    // ================== BATALHA NAVAL ==================
-    function updateBatalhaNaval() {
-      if (!FIELDS.oportunidade) {
-        if (chartBatalha) chartBatalha.destroy();
-        const ctx = document.getElementById("chart-batalha").getContext("2d");
-        chartBatalha = new Chart(ctx, {
-          type: "bar",
-          data: { labels: [], datasets: [] },
-        });
-        return;
-      }
+    // Gráficos
+    function buildAvancoChart(jornadaData) {
+      const ctx = document.getElementById("chart-avanco").getContext("2d");
+      if (chartAvanco) chartAvanco.destroy();
 
-      // Agrupa por cliente
-      const mapa = new Map(); // cliente -> soma oportunidade
-      filteredData.forEach((row) => {
-        const valor = toNumber(row[FIELDS.oportunidade]);
-        if (valor <= 0) return;
-        const cliente =
-          (FIELDS.cliente && row[FIELDS.cliente]) || "(sem nome)";
-        mapa.set(cliente, (mapa.get(cliente) || 0) + valor);
-      });
+      const labels = jornadaData.map(j => j.cliente);
+      const data = jornadaData.map(j => j.avancoPercent || 0);
 
-      const entries = Array.from(mapa.entries())
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 12); // top 12
-
-      const labels = entries.map((e) => e[0]);
-      const data = entries.map((e) => e[1]);
-
-      const ctx = document.getElementById("chart-batalha").getContext("2d");
-      if (chartBatalha) chartBatalha.destroy();
-
-      chartBatalha = new Chart(ctx, {
+      chartAvanco = new Chart(ctx, {
         type: "bar",
         data: {
           labels,
-          datasets: [
-            {
-              label: "Oportunidade (por aluno)",
-              data,
-              borderWidth: 1.5,
-            },
-          ],
+          datasets: [{
+            label: "% de avanço",
+            data,
+            backgroundColor: "rgba(31, 115, 183, 0.7)",
+            borderColor: "#1F73B7",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
         },
         options: {
           responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: (v) => formatCurrencyBR(v),
-              },
-            },
-          },
           plugins: {
             legend: { display: false },
             tooltip: {
-              callbacks: {
-                label: (context) => {
-                  const valor = context.parsed.y || 0;
-                  return formatCurrencyBR(valor);
-                },
-              },
-            },
+              callbacks: { label: ctx => formatPercent(ctx.parsed.y) }
+            }
           },
-        },
-      });
-    }
-
-    // ================== RESULTADOS UPS/RENOV ==================
-    function updateResultados() {
-      if (!FIELDS.tipoVenda || !FIELDS.valorVenda || !FIELDS.mesChurn) {
-        if (chartResultados) chartResultados.destroy();
-        const ctx = document.getElementById("chart-resultados").getContext("2d");
-        chartResultados = new Chart(ctx, {
-          type: "bar",
-          data: { labels: [], datasets: [] },
-        });
-        resumoResultados.textContent =
-          "Colunas obrigatórias (tipo, valor, mês) não foram localizadas.";
-        return;
-      }
-
-      // mapa: mes -> { upsell: total, renov: total }
-      const mapa = new Map();
-      filteredData.forEach((row) => {
-        const tipo = normalizeFieldName(row[FIELDS.tipoVenda] || "");
-        const mes = (row[FIELDS.mesChurn] || "").toString().trim() || "(sem mês)";
-        const valor = toNumber(row[FIELDS.valorVenda]);
-
-        if (!mapa.has(mes)) {
-          mapa.set(mes, { upsell: 0, renov: 0 });
-        }
-
-        const bucket = mapa.get(mes);
-        if (tipo.includes("upsell")) {
-          bucket.upsell += valor;
-        } else if (tipo.includes("renov")) {
-          bucket.renov += valor;
-        }
-      });
-
-      const entries = Array.from(mapa.entries()).sort((a, b) =>
-        a[0].localeCompare(b[0])
-      );
-
-      const labels = entries.map((e) => e[0]);
-      const upsellData = entries.map((e) => e[1].upsell);
-      const renovData = entries.map((e) => e[1].renov);
-
-      const ctx = document.getElementById("chart-resultados").getContext("2d");
-      if (chartResultados) chartResultados.destroy();
-
-      chartResultados = new Chart(ctx, {
-        type: "bar",
-        data: {
-          labels,
-          datasets: [
-            {
-              label: "Upsell",
-              data: upsellData,
-              borderWidth: 1.5,
-            },
-            {
-              label: "Renovação",
-              data: renovData,
-              borderWidth: 1.5,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
           scales: {
             y: {
               beginAtZero: true,
-              ticks: {
-                callback: (v) => formatCurrencyBR(v),
-              },
+              max: 100,
+              ticks: { callback: v => v + "%" }
             },
-          },
-          plugins: {
-            tooltip: {
-              callbacks: {
-                label: (context) => {
-                  const valor = context.parsed.y || 0;
-                  return `${context.dataset.label}: ${formatCurrencyBR(valor)}`;
-                },
-              },
-            },
-          },
-        },
+            x: {
+              ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    function buildChurnChart(jornadaData) {
+      const ctx = document.getElementById("chart-churn").getContext("2d");
+      if (chartChurn) chartChurn.destroy();
+
+      const riskCounts = {};
+      jornadaData.forEach(j => {
+        const risk = j.riscoChurn || "Não definido";
+        riskCounts[risk] = (riskCounts[risk] || 0) + 1;
       });
 
-      // resumo
-      const totalUpsell = upsellData.reduce((a, b) => a + b, 0);
-      const totalRenov = renovData.reduce((a, b) => a + b, 0);
-      const totalNegocios = filteredData.filter((row) =>
-        toNumber(row[FIELDS.valorVenda]) > 0
-      ).length;
+      const labels = Object.keys(riskCounts);
+      const data = Object.values(riskCounts);
 
-      resumoResultados.innerHTML = `
-        <strong>${totalNegocios}</strong> negócio(s) registrados na aba Vendas/Renovações. 
-        Upsell faturado: <strong>${formatCurrencyBR(totalUpsell)}</strong> |
-        Renovação faturada: <strong>${formatCurrencyBR(totalRenov)}</strong>.
+      const colors = labels.map(label => {
+        const lower = label.toLowerCase();
+        if (lower.includes("alto")) return "#CC3333";
+        if (lower.includes("moderado")) return "#C8A300";
+        if (lower.includes("saud")) return "#2ECC71";
+        if (lower.includes("concl")) return "#1F73B7";
+        if (lower.includes("meio")) return "#8FA9C9";
+        return "#0A1A2F";
+      });
+
+      chartChurn = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom" } },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildPrestacaoChart(jornadaData, prestData) {
+      const ctx = document.getElementById("chart-prestacao").getContext("2d");
+      if (chartPrestacao) chartPrestacao.destroy();
+
+      const totalAlunos = jornadaData.length;
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      let emDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) emDia++;
+      });
+      const nao = Math.max(totalAlunos - emDia, 0);
+
+      chartPrestacao = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Em dia", "Não enviada / atraso"],
+          datasets: [{
+            data: [emDia, nao],
+            backgroundColor: ["#158152", "#A32035"],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom" } },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildOportunidadesChart(bnavData) {
+      const ctx = document.getElementById("chart-oportunidades").getContext("2d");
+      if (chartOportunidades) chartOportunidades.destroy();
+
+      const filtered = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0);
+      const labels = filtered.map(b => b.cliente);
+      const data = filtered.map(b => b.oportunidadeTotal || 0);
+
+      chartOportunidades = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Oportunidade (R$)",
+            data,
+            backgroundColor: "rgba(200, 163, 0, 0.75)",
+            borderColor: "#C8A300",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => formatCurrencyBRL(v) }
+            }
+          }
+        }
+      });
+    }
+
+    function buildExperienceSummary(expDataFiltered) {
+      const container = document.getElementById("experience-summary");
+      if (!expDataFiltered.length) {
+        container.textContent = "Sem dados de Experience para os filtros selecionados.";
+        return;
+      }
+
+      const totalConvites = expDataFiltered.length;
+      const confirmados = expDataFiltered.filter(e =>
+        normalizeStr(e.status).includes("confirm")).length;
+
+      container.innerHTML = `
+        <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
+        <p><strong>${confirmados}</strong> aluno(s) confirmaram presença em encontros.</p>
+        <p style="margin-top:6px;font-size:11px;color:#7A8194;">
+          Ajuste os filtros de mês e encontro para analisar turmas específicas.
+        </p>
       `;
     }
 
-    // ================== TABELA CS (MAPA RISCO) ==================
-    function updateCsTable() {
-      csTableBody.innerHTML = "";
+    // Tabela de atenção
+    function buildAttentionTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("attention-body");
+      tbody.innerHTML = "";
 
-      if (!FIELDS.risco || !FIELDS.cliente) {
-        csTableBody.innerHTML = `
-          <tr><td colspan="7" class="loading">
-            Colunas mínimas para o mapa de risco (cliente / risco) não foram localizadas.
-          </td></tr>`;
-        return;
-      }
-
-      // Critério simples: alunos com risco ≠ "saudável" (case-insensitive)
-      const linhasCriticas = filteredData.filter((row) => {
-        const riscoRaw = (row[FIELDS.risco] || "").toString().trim();
-        const riscoNorm = normalizeFieldName(riscoRaw);
-        return riscoNorm && !riscoNorm.includes("saudavel");
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
       });
 
-      if (!linhasCriticas.length) {
-        csTableBody.innerHTML = `
-          <tr><td colspan="7" class="loading">
-            Nenhum aluno em situação de risco com os filtros atuais.
-          </td></tr>`;
-        return;
-      }
+      const bnavPorCliente = {};
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
 
-      linhasCriticas.forEach((row) => {
-        const cliente = (row[FIELDS.cliente] || "").toString().trim() || "—";
-        const plano = (FIELDS.plano && row[FIELDS.plano]) || "—";
-        const avanco = (FIELDS.avanco && row[FIELDS.avanco]) || "—";
-        const prazo = (FIELDS.prazo && row[FIELDS.prazo]) || "—";
-        const riscoRaw = (row[FIELDS.risco] || "").toString().trim() || "—";
-        const prest = (FIELDS.prestacao && row[FIELDS.prestacao]) || "—";
-        const oportunidade = FIELDS.oportunidade
-          ? formatCurrencyBR(toNumber(row[FIELDS.oportunidade]))
-          : "—";
+      const rows = [];
 
-        const riscoNorm = normalizeFieldName(riscoRaw);
-        let riscoClass = "outro";
-        let riscoIcon = "⏳";
-        if (riscoNorm.includes("alto")) {
-          riscoClass = "alto-risco";
-          riscoIcon = "⚠️";
-        } else if (riscoNorm.includes("saudavel")) {
-          riscoClass = "saudavel";
-          riscoIcon = "🟢";
+      jornadaData.forEach(j => {
+        const cliente = j.cliente;
+        const prest = prestPorCliente[normalizeStr(cliente)];
+        const bnav = bnavPorCliente[normalizeStr(cliente)];
+
+        const risco = j.riscoChurn || "";
+        const prazo = j.prazo || "";
+        const avanco = j.avancoPercent || 0;
+        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        const riscoNorm = normalizeStr(risco);
+        const prazoNorm = normalizeStr(prazo);
+
+        const riscoCritico = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
+        const atrasoTrilha = prazoNorm.includes("atras");
+        const prestRuim = !isPrestEmDia(prestSit);
+        const poucoAvanco = avanco < 50;
+        const temOportunidade = oportunidade > 0;
+
+        if (riscoCritico || atrasoTrilha || prestRuim || poucoAvanco || temOportunidade) {
+          rows.push({
+            cliente,
+            plano: j.plano,
+            avanco,
+            prazo,
+            risco,
+            prestacao: prestSit || "–",
+            oportunidade
+          });
         }
+      });
 
+      if (!rows.length) {
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><a href="#" style="color:#2563eb;text-decoration:underline;">${cliente}</a></td>
-          <td>${plano}</td>
-          <td>${avanco}</td>
-          <td>${prazo}</td>
-          <td>
-            <span class="pill-status ${riscoClass}">
-              <span class="dot"></span>
-              <span>${riscoIcon} ${riscoRaw}</span>
-            </span>
-          </td>
-          <td>${prest}</td>
-          <td>${oportunidade}</td>
-        `;
-        csTableBody.appendChild(tr);
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.textContent = "Nenhum aluno em atenção especial com as regras atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrazo = document.createElement("td");
+        tdPrazo.textContent = r.prazo || "–";
+        tr.appendChild(tdPrazo);
+
+        const tdRisco = document.createElement("td");
+        tdRisco.textContent = r.risco || "–";
+        tr.appendChild(tdRisco);
+
+        const tdPrest = document.createElement("td");
+        tdPrest.textContent = r.prestacao || "–";
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
       });
     }
 
-    // ================== ERROS ==================
-    function showError(msg) {
-      errorContainer.textContent = msg;
+    // Encerrados = avanço >= 99%
+    function buildEncerradosTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("encerrados-body");
+      tbody.innerHTML = "";
+
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      const bnavPorCliente = {};
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
+
+      const rows = [];
+
+      jornadaData.forEach(j => {
+        const avanco = j.avancoPercent || 0;
+        if (avanco < 99) return;
+
+        const cliente = j.cliente;
+        const prest = prestPorCliente[normalizeStr(cliente)];
+        const bnav = bnavPorCliente[normalizeStr(cliente)];
+
+        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        rows.push({
+          cliente,
+          plano: j.plano,
+          statusPlano: j.statusPlano || "",
+          avanco,
+          prestacao: prestSit || "–",
+          oportunidade
+        });
+      });
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = "Nenhum aluno encerrado encontrado para os filtros atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdStatus = document.createElement("td");
+        tdStatus.textContent = r.statusPlano || "–";
+        tr.appendChild(tdStatus);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrest = document.createElement("td");
+        tdPrest.textContent = r.prestacao || "–";
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
+      });
     }
 
-    // ================== EVENTOS ==================
-    mesChurnSelect.addEventListener("change", applyFilters);
-    riscoSelect.addEventListener("change", applyFilters);
-    resetButton.addEventListener("click", () => {
-      if (!mesChurnSelect.disabled) mesChurnSelect.value = "";
-      if (!riscoSelect.disabled) riscoSelect.value = "";
-      applyFilters();
+    // Modal
+    function openAlunoModal(nome) {
+      const modalOverlay = document.getElementById("aluno-modal-overlay");
+      const modalContent = document.getElementById("modal-content");
+
+      const nomeNorm = normalizeStr(nome);
+
+      const j = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const prest = allPrest.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const bnav = allBnav.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const expList = allExp.filter(a => normalizeStr(a.aluno) === nomeNorm);
+
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <h2>${nome}</h2>
+          <span>${j ? (j.plano || "Plano não informado") : ""}</span>
+        </div>
+        <div class="modal-grid">
+          <div class="modal-block">
+            <h3>Jornada</h3>
+            <p><strong>Avanço:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
+            <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "–") : "–"}</p>
+            <p><strong>Prazo:</strong> ${j ? (j.prazo || "–") : "–"}</p>
+          </div>
+          <div class="modal-block">
+            <h3>Prestação de contas</h3>
+            <p><strong>Situação atual:</strong> ${prest ? (prest.situacaoAtual || "–") : "–"}</p>
+          </div>
+        </div>
+
+        <div class="modal-grid" style="margin-top:10px;">
+          <div class="modal-block">
+            <h3>Oportunidades (Batalha Naval)</h3>
+            <p><strong>Potencial mapeado:</strong> ${formatCurrencyBRL(bnav ? (bnav.oportunidadeTotal || 0) : 0)}</p>
+          </div>
+          <div class="modal-block">
+            <h3>Engajamento – Let's GO Experience</h3>
+            <p><strong>Registros:</strong> ${expList.length}</p>
+            <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
+          </div>
+        </div>
+      `;
+
+      modalOverlay.classList.remove("hidden");
+    }
+
+    function closeAlunoModal() {
+      document.getElementById("aluno-modal-overlay").classList.add("hidden");
+    }
+
+    document.getElementById("modal-close-btn").addEventListener("click", closeAlunoModal);
+    document.getElementById("aluno-modal-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
     });
 
-    document.addEventListener("DOMContentLoaded", loadCSV);
+    // Filtros
+    function initFilters() {
+      const planoSelect = document.getElementById("filter-plano");
+      const mesSelect = document.getElementById("filter-exp-mes");
+      const encontroSelect = document.getElementById("filter-exp-encontro");
+
+      const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
+      planos.sort();
+      planos.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        planoSelect.appendChild(opt);
+      });
+
+      planoSelect.addEventListener("change", () => {
+        currentPlanoFilter = planoSelect.value;
+        renderAll();
+      });
+
+      const meses = Array.from(new Set(allExp.map(e => e.mes).filter(Boolean)));
+      meses.sort();
+      meses.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        mesSelect.appendChild(opt);
+      });
+
+      const encontros = Array.from(new Set(allExp.map(e => e.encontro).filter(Boolean)));
+      encontros.sort();
+      encontros.forEach(en => {
+        const opt = document.createElement("option");
+        opt.value = en;
+        opt.textContent = en;
+        encontroSelect.appendChild(opt);
+      });
+
+      mesSelect.addEventListener("change", () => {
+        currentExpMesFilter = mesSelect.value;
+        renderAll();
+      });
+
+      encontroSelect.addEventListener("change", () => {
+        currentExpEncontroFilter = encontroSelect.value;
+        renderAll();
+      });
+    }
+
+    function renderAll() {
+      const jornadaFiltrada = getFilteredJornada();
+      const expFiltrada = getFilteredExperience();
+
+      buildKPIs(jornadaFiltrada, allPrest, allBnav);
+      buildAvancoChart(jornadaFiltrada);
+      buildChurnChart(jornadaFiltrada);
+      buildPrestacaoChart(jornadaFiltrada, allPrest);
+      buildOportunidadesChart(allBnav);
+      buildExperienceSummary(expFiltrada);
+      buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
+      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
+    }
+
+    async function loadAllData() {
+      try {
+        const [jornadaRows, prestRows, batalhaRows, expRows] = await Promise.all([
+          fetchCsv(URL_JORNADA),
+          fetchCsv(URL_PRESTACAO),
+          fetchCsv(URL_BATALHA),
+          fetchCsv(URL_EXPERIENCE)
+        ]);
+
+        allJornada = normalizeJornada(jornadaRows);
+        allPrest = normalizePrestacao(prestRows);
+        allBnav = normalizeBatalha(batalhaRows);
+        allExp = normalizeExperience(expRows);
+
+        document.getElementById("loading-global").textContent = "Dados carregados.";
+
+        initFilters();
+        renderAll();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("loading-global").textContent =
+          "Erro ao carregar os dados. Verifique se as abas estão publicadas corretamente em CSV.";
+      }
+    }
+
+    loadAllData();
   </script>
 </body>
 </html>
