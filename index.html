@@ -13,11 +13,6 @@
       --cs-white: #FFFFFF;
       --cs-bg: #F5F6FA;
       --cs-gray: #E3E6ED;
-
-      --cs-gray-dark: #6B7280;
-      --cs-green: #16A34A;
-      --cs-red: #DC2626;
-      --cs-soft-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
     }
 
     * {
@@ -28,16 +23,15 @@
     body {
       margin: 0;
       padding: 0;
-      background: #EEF1F8;
+      background: var(--cs-bg);
       color: var(--cs-black);
     }
 
-    /* TOPBAR (igual ao print) */
     .topbar {
       background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue));
       color: var(--cs-white);
-      padding: 20px 20px 18px;
-      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
     }
 
     .topbar-inner {
@@ -59,53 +53,48 @@
     .topbar-title h1 {
       margin: 0;
       font-size: 24px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.03em;
       text-transform: uppercase;
     }
 
     .topbar-title span {
       font-size: 13px;
-      opacity: 0.95;
+      opacity: 0.9;
     }
 
     .topbar-badge {
-      background: rgba(15, 118, 110, 0.14);
+      background: rgba(255,255,255,0.12);
       border-radius: 999px;
       padding: 6px 12px;
       font-size: 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      border: 1px solid rgba(148, 163, 184, 0.5);
-      backdrop-filter: blur(10px);
     }
 
     .topbar-dot {
       width: 9px;
       height: 9px;
       border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+      background: #20c997;
     }
 
-    /* PÁGINA */
     .page {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 22px 18px 40px;
+      padding: 20px 16px 40px;
     }
 
     .loading {
       font-size: 13px;
-      color: #4b5563;
-      margin-bottom: 8px;
+      color: #555;
+      margin-top: 8px;
     }
 
-    /* TÍTULOS DE SEÇÃO */
     .section-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
-      margin: 24px 0 12px;
+      margin: 24px 0 10px;
       color: var(--cs-navy);
       display: flex;
       align-items: center;
@@ -113,122 +102,78 @@
     }
 
     .section-title span.icon {
-      width: 14px;
-      height: 14px;
-      border-radius: 999px;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
       background: var(--cs-yellow);
-      box-shadow: 0 0 0 4px rgba(200, 163, 0, 0.22);
       display: inline-block;
     }
-
-    /* ===== BLOCO 1 – KPIs (layout igual ao print) ===== */
 
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 16px;
-      margin-bottom: 18px;
+      gap: 12px;
     }
 
     .kpi-card {
       background: var(--cs-white);
-      border-radius: 20px;
-      padding: 18px 20px 16px;
-      box-shadow: var(--cs-soft-shadow);
-      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-    }
-
-    .kpi-card-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 8px;
+      gap: 4px;
     }
 
     .kpi-label {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.14em;
-      color: #9ca3af;
+      letter-spacing: 0.08em;
+      color: #7A8194;
     }
 
-    .kpi-pill {
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cs-black);
+    }
+
+    .kpi-extra {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .kpi-tag {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 11px;
       border-radius: 999px;
-      padding: 3px 9px;
-      border: none;
-      white-space: nowrap;
-      font-weight: 500;
+      padding: 2px 8px;
+      align-self: flex-start;
     }
 
-    .kpi-pill-base {
-      background: rgba(22, 163, 74, 0.08);
-      color: #15803d;
+    .tag-ok {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
     }
 
-    .kpi-pill-sucesso {
-      background: rgba(59, 130, 246, 0.08);
-      color: #1d4ed8;
+    .tag-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #947000;
     }
 
-    .kpi-pill-prestacao {
-      background: rgba(245, 158, 11, 0.08);
-      color: #b45309;
+    .tag-risk {
+      background: rgba(220, 53, 69, 0.14);
+      color: #A32035;
     }
-
-    .kpi-pill-upsell {
-      background: rgba(239, 68, 68, 0.08);
-      color: #b91c1c;
-    }
-
-    .kpi-card-middle {
-      display: flex;
-      align-items: baseline;
-      gap: 6px;
-    }
-
-    .kpi-value {
-      font-size: 26px;
-      font-weight: 700;
-      color: #0f172a;
-    }
-
-    .kpi-card-bottom {
-      margin-top: 2px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .kpi-extra {
-      font-size: 12px;
-      color: #6b7280;
-    }
-
-    .kpi-extra-cta {
-      font-size: 11px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      border: 1px dashed rgba(148, 163, 184, 0.9);
-      color: #4b5563;
-      background: #f9fafb;
-      white-space: nowrap;
-    }
-
-    /* FILTROS ABAIXO DO BLOCO 1 (como no print) */
 
     .filters-row {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin: 4px 0 10px;
+      margin: 14px 0 4px;
       align-items: flex-end;
     }
 
@@ -241,28 +186,24 @@
 
     .filter-group label {
       text-transform: uppercase;
-      letter-spacing: 0.11em;
-      color: #9ca3af;
-      font-weight: 500;
+      letter-spacing: 0.08em;
+      color: #7A8194;
     }
 
     .filter-group select {
-      padding: 6px 13px;
+      padding: 4px 8px;
       border-radius: 999px;
-      border: 1px solid #d0d4e4;
+      border: 1px solid #D0D4E4;
       font-size: 12px;
-      background: #ffffff;
-      min-width: 170px;
-      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.18);
+      background: #FFF;
+      min-width: 160px;
     }
-
-    /* LAYOUT DOS CARDS/GRÁFICOS (mantidos, só suavizados) */
 
     .layout-two {
       display: grid;
       grid-template-columns: 2fr 1.5fr;
       gap: 18px;
-      margin-top: 10px;
+      margin-top: 12px;
     }
 
     .layout-three {
@@ -274,10 +215,10 @@
 
     .card {
       background: var(--cs-white);
-      border-radius: 18px;
-      padding: 16px 18px 18px;
-      box-shadow: var(--cs-soft-shadow);
-      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
     }
 
     .card-header {
@@ -285,7 +226,7 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 8px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .card-title {
@@ -296,26 +237,23 @@
 
     .card-subtitle {
       font-size: 11px;
-      color: #6b7280;
+      color: #7A8194;
     }
 
     .pill {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      padding: 4px 10px;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
       border-radius: 999px;
-      border: 1px solid rgba(148, 163, 184, 0.7);
-      background: #f9fafb;
-      color: #4b5563;
-      white-space: nowrap;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #F4F5FA;
+      color: #555;
     }
 
     canvas {
       max-width: 100%;
     }
-
-    /* TABELAS */
 
     .attention-table {
       width: 100%;
@@ -326,17 +264,16 @@
 
     .attention-table th,
     .attention-table td {
-      padding: 7px 6px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 6px 6px;
+      border-bottom: 1px solid #E3E6ED;
       text-align: left;
     }
 
     .attention-table th {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.11em;
-      color: #9ca3af;
-      background: #f9fafb;
+      letter-spacing: 0.06em;
+      color: #7A8194;
     }
 
     .link-cliente {
@@ -346,10 +283,8 @@
     }
 
     .section-enc {
-      margin-top: 20px;
+      margin-top: 8px;
     }
-
-    /* RESPONSIVO */
 
     @media (max-width: 1024px) {
       .kpi-grid {
@@ -369,12 +304,11 @@
       }
     }
 
-    /* MODAL */
-
+    /* Modal */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(15, 23, 42, 0.55);
+      background: rgba(0,0,0,0.45);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -382,13 +316,13 @@
     }
 
     .modal {
-      background: #ffffff;
-      border-radius: 18px;
+      background: #FFFFFF;
+      border-radius: 16px;
       max-width: 720px;
       width: 95%;
       max-height: 90vh;
-      padding: 18px 20px 20px;
-      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.45);
+      padding: 16px 18px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
       overflow-y: auto;
       position: relative;
     }
@@ -401,7 +335,7 @@
       background: transparent;
       font-size: 20px;
       cursor: pointer;
-      color: #6b7280;
+      color: #666;
     }
 
     .modal-header {
@@ -416,7 +350,7 @@
 
     .modal-header span {
       font-size: 12px;
-      color: #6b7280;
+      color: #7A8194;
     }
 
     .modal-grid {
@@ -427,9 +361,9 @@
     }
 
     .modal-block {
-      background: #f3f4ff;
-      border-radius: 12px;
-      padding: 9px 11px;
+      background: #F7F8FD;
+      border-radius: 10px;
+      padding: 8px 10px;
       font-size: 12px;
     }
 
@@ -463,72 +397,36 @@
       Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
     </div>
 
-    <!-- BLOCO 1 – VISÃO GERAL / KPIs -->
+    <!-- KPIs -->
     <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
-
     <div class="kpi-grid">
-      <!-- KPI 1 – Alunos ativos -->
-      <article class="kpi-card">
-        <div class="kpi-card-top">
-          <div class="kpi-label">Alunos ativos</div>
-          <span class="kpi-pill kpi-pill-base">Base atual da mentoria</span>
-        </div>
-        <div class="kpi-card-middle">
-          <span class="kpi-value" id="kpi-total-alunos">–</span>
-        </div>
-        <div class="kpi-card-bottom">
-          <span class="kpi-extra" id="kpi-total-alunos-extra"></span>
-          <span class="kpi-extra-cta">Base atual da jornada</span>
-        </div>
-      </article>
-
-      <!-- KPI 2 – Taxa de sucesso -->
-      <article class="kpi-card">
-        <div class="kpi-card-top">
-          <div class="kpi-label">Taxa de sucesso da jornada</div>
-          <span class="kpi-pill kpi-pill-sucesso">Conclusão da trilha</span>
-        </div>
-        <div class="kpi-card-middle">
-          <span class="kpi-value" id="kpi-taxasucesso">–</span>
-        </div>
-        <div class="kpi-card-bottom">
-          <span class="kpi-extra" id="kpi-taxasucesso-extra"></span>
-          <span class="kpi-extra-cta">Acompanhamento da jornada</span>
-        </div>
-      </article>
-
-      <!-- KPI 3 – Prestação de contas -->
-      <article class="kpi-card">
-        <div class="kpi-card-top">
-          <div class="kpi-label">Prestação de contas em dia</div>
-          <span class="kpi-pill kpi-pill-prestacao">Envio dos dados financeiros</span>
-        </div>
-        <div class="kpi-card-middle">
-          <span class="kpi-value" id="kpi-prestacao">–</span>
-        </div>
-        <div class="kpi-card-bottom">
-          <span class="kpi-extra" id="kpi-prestacao-extra"></span>
-          <span class="kpi-extra-cta">Saúde da prestação</span>
-        </div>
-      </article>
-
-      <!-- KPI 4 – Potencial de Upsell -->
-      <article class="kpi-card">
-        <div class="kpi-card-top">
-          <div class="kpi-label">Potencial de upsell / renovação</div>
-          <span class="kpi-pill kpi-pill-upsell">Mapa de oportunidades comerciais</span>
-        </div>
-        <div class="kpi-card-middle">
-          <span class="kpi-value" id="kpi-oportunidades">–</span>
-        </div>
-        <div class="kpi-card-bottom">
-          <span class="kpi-extra" id="kpi-oportunidades-extra"></span>
-          <span class="kpi-extra-cta">Potencial de receita</span>
-        </div>
-      </article>
+      <div class="kpi-card">
+        <div class="kpi-label">Alunos ativos</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
+        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
+        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Taxa de sucesso da jornada</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
+        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
+        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
+        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
+        <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Potencial de upsell / renovação</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
+        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
+        <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
+      </div>
     </div>
 
-    <!-- Filtros (logo abaixo dos KPIs, igual ao print) -->
+    <!-- Filtros -->
     <div class="filters-row">
       <div class="filter-group">
         <label for="filter-plano">Plano (Jornada)</label>
@@ -698,7 +596,7 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // CSV parser inteligente
+    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
       const rawLines = text
         .replace(/\r/g, "\n")
@@ -757,7 +655,7 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // Parser numérico robusto BRL
+    // Parser numérico robusto para BRL
     function parseNumberBR(s) {
       if (s == null) return 0;
       let v = s.toString().trim();
@@ -862,11 +760,12 @@
         }));
     }
 
-    // BATALHA NAVAL
+    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
+      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback
       let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
       if (!hAluno) {
         hAluno = headers[1] || headers[0];
@@ -878,6 +777,7 @@
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
+      // Se ainda não encontrar, escolhe a coluna mais numérica
       if (!hTotal) {
         let bestCol = "";
         let bestScore = -1;
@@ -1023,6 +923,7 @@
       );
       const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
 
+      // Vendas reais a partir da aba Vendas
       const vendasMap = getVendasMap();
       let totalVendas = 0;
       let clientesComVenda = 0;
@@ -1333,7 +1234,7 @@
       });
     }
 
-    // Encerrados
+    // ✅ Encerrados = status do plano finalizado/encerrado/concluído (NOVA REGRA)
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
@@ -1351,22 +1252,32 @@
       const rows = [];
 
       jornadaData.forEach(j => {
-        const avanco = j.avancoPercent || 0;
-        if (avanco < 99) return;
+        const statusNorm = normalizeStr(j.statusPlano);
+
+        // NOVA REGRA: considerar encerrado APENAS pelo status do plano
+        const isFinalizado =
+          statusNorm.includes("final") ||    // finalizado
+          statusNorm.includes("encerr") ||   // encerrado
+          statusNorm.includes("concl") ||    // concluído
+          statusNorm.includes("done") ||     // done
+          statusNorm.includes("finish") ||   // finished
+          statusNorm.includes("complete");   // completed
+
+        if (!isFinalizado) return;
 
         const cliente = j.cliente;
         const prest = prestPorCliente[normalizeStr(cliente)];
         const bnav = bnavPorCliente[normalizeStr(cliente)];
 
-        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const prestSit = prest ? (prest.situacaoAtual || "") : "–";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
 
         rows.push({
           cliente,
           plano: j.plano,
           statusPlano: j.statusPlano || "",
-          avanco,
-          prestacao: prestSit || "–",
+          avanco: j.avancoPercent || 0,
+          prestacao: prestSit,
           oportunidade
         });
       });
@@ -1409,7 +1320,8 @@
         tr.appendChild(tdPrest);
 
         const tdOp = document.createElement("td");
-        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tdOp.textContent =
+          r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
         tr.appendChild(tdOp);
 
         tbody.appendChild(tr);
