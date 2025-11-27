@@ -13,6 +13,11 @@
       --cs-white: #FFFFFF;
       --cs-bg: #F5F6FA;
       --cs-gray: #E3E6ED;
+
+      --cs-gray-dark: #6B7280;
+      --cs-green: #16A34A;
+      --cs-red: #DC2626;
+      --cs-soft-shadow: 0 18px 45px rgba(15, 23, 42, 0.12);
     }
 
     * {
@@ -23,15 +28,16 @@
     body {
       margin: 0;
       padding: 0;
-      background: var(--cs-bg);
+      background: #EEF1F8;
       color: var(--cs-black);
     }
 
+    /* TOPBAR (igual ao print) */
     .topbar {
       background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue));
       color: var(--cs-white);
-      padding: 18px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      padding: 20px 20px 18px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
     }
 
     .topbar-inner {
@@ -53,48 +59,53 @@
     .topbar-title h1 {
       margin: 0;
       font-size: 24px;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.08em;
       text-transform: uppercase;
     }
 
     .topbar-title span {
       font-size: 13px;
-      opacity: 0.9;
+      opacity: 0.95;
     }
 
     .topbar-badge {
-      background: rgba(255,255,255,0.12);
+      background: rgba(15, 118, 110, 0.14);
       border-radius: 999px;
       padding: 6px 12px;
       font-size: 12px;
       display: inline-flex;
       align-items: center;
       gap: 6px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      backdrop-filter: blur(10px);
     }
 
     .topbar-dot {
       width: 9px;
       height: 9px;
       border-radius: 50%;
-      background: #20c997;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
     }
 
+    /* PÁGINA */
     .page {
       max-width: 1280px;
       margin: 0 auto;
-      padding: 20px 16px 40px;
+      padding: 22px 18px 40px;
     }
 
     .loading {
       font-size: 13px;
-      color: #555;
-      margin-top: 8px;
+      color: #4b5563;
+      margin-bottom: 8px;
     }
 
+    /* TÍTULOS DE SEÇÃO */
     .section-title {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
-      margin: 24px 0 10px;
+      margin: 24px 0 12px;
       color: var(--cs-navy);
       display: flex;
       align-items: center;
@@ -102,78 +113,122 @@
     }
 
     .section-title span.icon {
-      width: 18px;
-      height: 18px;
-      border-radius: 4px;
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
       background: var(--cs-yellow);
+      box-shadow: 0 0 0 4px rgba(200, 163, 0, 0.22);
       display: inline-block;
     }
+
+    /* ===== BLOCO 1 – KPIs (layout igual ao print) ===== */
 
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 12px;
+      gap: 16px;
+      margin-bottom: 18px;
     }
 
     .kpi-card {
       background: var(--cs-white);
-      border-radius: 14px;
-      padding: 12px 14px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #D8DCE8;
+      border-radius: 20px;
+      padding: 18px 20px 16px;
+      box-shadow: var(--cs-soft-shadow);
+      border: 1px solid rgba(226, 232, 240, 0.9);
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 10px;
+    }
+
+    .kpi-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
     }
 
     .kpi-label {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #7A8194;
+      letter-spacing: 0.14em;
+      color: #9ca3af;
     }
 
-    .kpi-value {
-      font-size: 22px;
-      font-weight: 600;
-      color: var(--cs-black);
-    }
-
-    .kpi-extra {
-      font-size: 11px;
-      color: #7A8194;
-    }
-
-    .kpi-tag {
+    .kpi-pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       font-size: 11px;
       border-radius: 999px;
-      padding: 2px 8px;
-      align-self: flex-start;
+      padding: 3px 9px;
+      border: none;
+      white-space: nowrap;
+      font-weight: 500;
     }
 
-    .tag-ok {
-      background: rgba(31, 199, 116, 0.12);
-      color: #158152;
+    .kpi-pill-base {
+      background: rgba(22, 163, 74, 0.08);
+      color: #15803d;
     }
 
-    .tag-warning {
-      background: rgba(255, 193, 7, 0.15);
-      color: #947000;
+    .kpi-pill-sucesso {
+      background: rgba(59, 130, 246, 0.08);
+      color: #1d4ed8;
     }
 
-    .tag-risk {
-      background: rgba(220, 53, 69, 0.14);
-      color: #A32035;
+    .kpi-pill-prestacao {
+      background: rgba(245, 158, 11, 0.08);
+      color: #b45309;
     }
+
+    .kpi-pill-upsell {
+      background: rgba(239, 68, 68, 0.08);
+      color: #b91c1c;
+    }
+
+    .kpi-card-middle {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .kpi-card-bottom {
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .kpi-extra {
+      font-size: 12px;
+      color: #6b7280;
+    }
+
+    .kpi-extra-cta {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px dashed rgba(148, 163, 184, 0.9);
+      color: #4b5563;
+      background: #f9fafb;
+      white-space: nowrap;
+    }
+
+    /* FILTROS ABAIXO DO BLOCO 1 (como no print) */
 
     .filters-row {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin: 14px 0 4px;
+      margin: 4px 0 10px;
       align-items: flex-end;
     }
 
@@ -186,24 +241,28 @@
 
     .filter-group label {
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #7A8194;
+      letter-spacing: 0.11em;
+      color: #9ca3af;
+      font-weight: 500;
     }
 
     .filter-group select {
-      padding: 4px 8px;
+      padding: 6px 13px;
       border-radius: 999px;
-      border: 1px solid #D0D4E4;
+      border: 1px solid #d0d4e4;
       font-size: 12px;
-      background: #FFF;
-      min-width: 160px;
+      background: #ffffff;
+      min-width: 170px;
+      box-shadow: 0 8px 18px rgba(148, 163, 184, 0.18);
     }
+
+    /* LAYOUT DOS CARDS/GRÁFICOS (mantidos, só suavizados) */
 
     .layout-two {
       display: grid;
       grid-template-columns: 2fr 1.5fr;
       gap: 18px;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .layout-three {
@@ -215,10 +274,10 @@
 
     .card {
       background: var(--cs-white);
-      border-radius: 14px;
-      padding: 14px 16px 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border: 1px solid #D8DCE8;
+      border-radius: 18px;
+      padding: 16px 18px 18px;
+      box-shadow: var(--cs-soft-shadow);
+      border: 1px solid rgba(226, 232, 240, 0.9);
     }
 
     .card-header {
@@ -226,7 +285,7 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 8px;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
     .card-title {
@@ -237,23 +296,26 @@
 
     .card-subtitle {
       font-size: 11px;
-      color: #7A8194;
+      color: #6b7280;
     }
 
     .pill {
       font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      padding: 3px 8px;
+      letter-spacing: 0.12em;
+      padding: 4px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.08);
-      background: #F4F5FA;
-      color: #555;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: #f9fafb;
+      color: #4b5563;
+      white-space: nowrap;
     }
 
     canvas {
       max-width: 100%;
     }
+
+    /* TABELAS */
 
     .attention-table {
       width: 100%;
@@ -264,16 +326,17 @@
 
     .attention-table th,
     .attention-table td {
-      padding: 6px 6px;
-      border-bottom: 1px solid #E3E6ED;
+      padding: 7px 6px;
+      border-bottom: 1px solid #e5e7eb;
       text-align: left;
     }
 
     .attention-table th {
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #7A8194;
+      letter-spacing: 0.11em;
+      color: #9ca3af;
+      background: #f9fafb;
     }
 
     .link-cliente {
@@ -283,8 +346,10 @@
     }
 
     .section-enc {
-      margin-top: 8px;
+      margin-top: 20px;
     }
+
+    /* RESPONSIVO */
 
     @media (max-width: 1024px) {
       .kpi-grid {
@@ -304,11 +369,12 @@
       }
     }
 
-    /* Modal */
+    /* MODAL */
+
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(15, 23, 42, 0.55);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -316,13 +382,13 @@
     }
 
     .modal {
-      background: #FFFFFF;
-      border-radius: 16px;
+      background: #ffffff;
+      border-radius: 18px;
       max-width: 720px;
       width: 95%;
       max-height: 90vh;
-      padding: 16px 18px 18px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      padding: 18px 20px 20px;
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.45);
       overflow-y: auto;
       position: relative;
     }
@@ -335,7 +401,7 @@
       background: transparent;
       font-size: 20px;
       cursor: pointer;
-      color: #666;
+      color: #6b7280;
     }
 
     .modal-header {
@@ -350,7 +416,7 @@
 
     .modal-header span {
       font-size: 12px;
-      color: #7A8194;
+      color: #6b7280;
     }
 
     .modal-grid {
@@ -361,9 +427,9 @@
     }
 
     .modal-block {
-      background: #F7F8FD;
-      border-radius: 10px;
-      padding: 8px 10px;
+      background: #f3f4ff;
+      border-radius: 12px;
+      padding: 9px 11px;
       font-size: 12px;
     }
 
@@ -397,36 +463,72 @@
       Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
     </div>
 
-    <!-- KPIs -->
+    <!-- BLOCO 1 – VISÃO GERAL / KPIs -->
     <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
+
     <div class="kpi-grid">
-      <div class="kpi-card">
-        <div class="kpi-label">Alunos ativos</div>
-        <div class="kpi-value" id="kpi-total-alunos">–</div>
-        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
-        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Taxa de sucesso da jornada</div>
-        <div class="kpi-value" id="kpi-taxasucesso">–</div>
-        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
-        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Prestação de contas em dia</div>
-        <div class="kpi-value" id="kpi-prestacao">–</div>
-        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
-        <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-label">Potencial de upsell / renovação</div>
-        <div class="kpi-value" id="kpi-oportunidades">–</div>
-        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
-        <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
-      </div>
+      <!-- KPI 1 – Alunos ativos -->
+      <article class="kpi-card">
+        <div class="kpi-card-top">
+          <div class="kpi-label">Alunos ativos</div>
+          <span class="kpi-pill kpi-pill-base">Base atual da mentoria</span>
+        </div>
+        <div class="kpi-card-middle">
+          <span class="kpi-value" id="kpi-total-alunos">–</span>
+        </div>
+        <div class="kpi-card-bottom">
+          <span class="kpi-extra" id="kpi-total-alunos-extra"></span>
+          <span class="kpi-extra-cta">Base atual da jornada</span>
+        </div>
+      </article>
+
+      <!-- KPI 2 – Taxa de sucesso -->
+      <article class="kpi-card">
+        <div class="kpi-card-top">
+          <div class="kpi-label">Taxa de sucesso da jornada</div>
+          <span class="kpi-pill kpi-pill-sucesso">Conclusão da trilha</span>
+        </div>
+        <div class="kpi-card-middle">
+          <span class="kpi-value" id="kpi-taxasucesso">–</span>
+        </div>
+        <div class="kpi-card-bottom">
+          <span class="kpi-extra" id="kpi-taxasucesso-extra"></span>
+          <span class="kpi-extra-cta">Acompanhamento da jornada</span>
+        </div>
+      </article>
+
+      <!-- KPI 3 – Prestação de contas -->
+      <article class="kpi-card">
+        <div class="kpi-card-top">
+          <div class="kpi-label">Prestação de contas em dia</div>
+          <span class="kpi-pill kpi-pill-prestacao">Envio dos dados financeiros</span>
+        </div>
+        <div class="kpi-card-middle">
+          <span class="kpi-value" id="kpi-prestacao">–</span>
+        </div>
+        <div class="kpi-card-bottom">
+          <span class="kpi-extra" id="kpi-prestacao-extra"></span>
+          <span class="kpi-extra-cta">Saúde da prestação</span>
+        </div>
+      </article>
+
+      <!-- KPI 4 – Potencial de Upsell -->
+      <article class="kpi-card">
+        <div class="kpi-card-top">
+          <div class="kpi-label">Potencial de upsell / renovação</div>
+          <span class="kpi-pill kpi-pill-upsell">Mapa de oportunidades comerciais</span>
+        </div>
+        <div class="kpi-card-middle">
+          <span class="kpi-value" id="kpi-oportunidades">–</span>
+        </div>
+        <div class="kpi-card-bottom">
+          <span class="kpi-extra" id="kpi-oportunidades-extra"></span>
+          <span class="kpi-extra-cta">Potencial de receita</span>
+        </div>
+      </article>
     </div>
 
-    <!-- Filtros -->
+    <!-- Filtros (logo abaixo dos KPIs, igual ao print) -->
     <div class="filters-row">
       <div class="filter-group">
         <label for="filter-plano">Plano (Jornada)</label>
@@ -596,7 +698,7 @@
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
+    // CSV parser inteligente
     function parseCsv(text) {
       const rawLines = text
         .replace(/\r/g, "\n")
@@ -655,35 +757,30 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // Parser numérico robusto para BRL (ex: 20.300,00 | 20.300 | 20300 | 3,60)
+    // Parser numérico robusto BRL
     function parseNumberBR(s) {
       if (s == null) return 0;
       let v = s.toString().trim();
       if (!v) return 0;
 
-      // tira acento e qualquer coisa que não seja número, ponto, vírgula ou sinal
       v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       v = v.replace(/[^0-9,.\-]+/g, "");
       if (!v) return 0;
 
-      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/; // 20.300,00
-      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;        // 20.300
-      const commaDecimalRegex          = /^\d+(,\d+)?$/;               // 20300,00 ou 20300,5
-      const dotDecimalRegex            = /^\d+(\.\d+)?$/;              // 20300.00
+      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/;
+      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;
+      const commaDecimalRegex          = /^\d+(,\d+)?$/;
+      const dotDecimalRegex            = /^\d+(\.\d+)?$/;
 
       if (brThousandsAndDecimalRegex.test(v)) {
-        // 20.300,00 -> 20300.00
         v = v.replace(/\./g, "").replace(",", ".");
       } else if (brThousandsOnlyRegex.test(v)) {
-        // 20.300 -> 20300
         v = v.replace(/\./g, "");
       } else if (commaDecimalRegex.test(v)) {
-        // 20300,50 -> 20300.50
         v = v.replace(",", ".");
       } else if (dotDecimalRegex.test(v)) {
-        // 20300.50 (já ok)
+        // ok
       } else {
-        // fallback heurístico
         const hasComma = v.includes(",");
         const hasDot = v.includes(".");
         if (hasComma && hasDot) {
@@ -765,12 +862,11 @@
         }));
     }
 
-    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
+    // BATALHA NAVAL
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback (muito comum ser o "Cliente")
       let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
       if (!hAluno) {
         hAluno = headers[1] || headers[0];
@@ -782,7 +878,6 @@
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
-      // Se ainda não encontrar, tenta heurística: escolhe a coluna mais "numérica"
       if (!hTotal) {
         let bestCol = "";
         let bestScore = -1;
@@ -928,7 +1023,6 @@
       );
       const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
 
-      // Vendas reais a partir da aba Vendas
       const vendasMap = getVendasMap();
       let totalVendas = 0;
       let clientesComVenda = 0;
@@ -1239,7 +1333,7 @@
       });
     }
 
-    // Encerrados = avanço >= 99%
+    // Encerrados
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
