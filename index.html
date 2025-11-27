@@ -394,7 +394,7 @@
 
   <main class="page">
     <div id="loading-global" class="loading">
-      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience, Vendas/Renovações)...
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
     </div>
 
     <!-- KPIs -->
@@ -424,20 +424,6 @@
         <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
         <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
       </div>
-      <!-- NOVO: Vendas / Renovações realizadas -->
-      <div class="kpi-card">
-        <div class="kpi-label">Vendas / renovações realizadas</div>
-        <div class="kpi-value" id="kpi-vendas">–</div>
-        <div class="kpi-extra" id="kpi-vendas-extra"></div>
-        <div class="kpi-tag tag-ok">Valor efetivamente pago</div>
-      </div>
-      <!-- NOVO: Churn por mês -->
-      <div class="kpi-card">
-        <div class="kpi-label">Churn (por mês)</div>
-        <div class="kpi-value" id="kpi-churn-mes">–</div>
-        <div class="kpi-extra" id="kpi-churn-mes-extra"></div>
-        <div class="kpi-tag tag-risk">Alunos que saíram</div>
-      </div>
     </div>
 
     <!-- Filtros -->
@@ -458,13 +444,6 @@
         <label for="filter-exp-encontro">Encontro (Experience)</label>
         <select id="filter-exp-encontro">
           <option value="__all__">Todos os encontros</option>
-        </select>
-      </div>
-      <!-- NOVO: filtro de mês do churn -->
-      <div class="filter-group">
-        <label for="filter-mes-churn">Mês do churn</label>
-        <select id="filter-mes-churn">
-          <option value="__all__">Todos os meses</option>
         </select>
       </div>
     </div>
@@ -600,7 +579,6 @@
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
     const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
     const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
-    // NOVO: aba Vendas / Renovações (realizado)
     const URL_VENDAS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
     let allJornada = [];
@@ -612,14 +590,13 @@
     let currentPlanoFilter = "__all__";
     let currentExpMesFilter = "__all__";
     let currentExpEncontroFilter = "__all__";
-    let currentMesChurnFilter = "__all__";
 
     let chartAvanco = null;
     let chartChurn = null;
     let chartPrestacao = null;
     let chartOportunidades = null;
 
-    // CSV parser inteligente
+    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
       const rawLines = text
         .replace(/\r/g, "\n")
@@ -678,30 +655,35 @@
       return isNaN(n) ? 0 : n;
     }
 
-    // Parser numérico robusto BRL
+    // Parser numérico robusto para BRL (ex: 20.300,00 | 20.300 | 20300 | 3,60)
     function parseNumberBR(s) {
       if (s == null) return 0;
       let v = s.toString().trim();
       if (!v) return 0;
 
+      // tira acento e qualquer coisa que não seja número, ponto, vírgula ou sinal
       v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       v = v.replace(/[^0-9,.\-]+/g, "");
       if (!v) return 0;
 
-      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/;
-      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;
-      const commaDecimalRegex          = /^\d+(,\d+)?$/;
-      const dotDecimalRegex            = /^\d+(\.\d+)?$/;
+      const brThousandsAndDecimalRegex = /^\d{1,3}(\.\d{3})+(,\d+)?$/; // 20.300,00
+      const brThousandsOnlyRegex       = /^\d{1,3}(\.\d{3})+$/;        // 20.300
+      const commaDecimalRegex          = /^\d+(,\d+)?$/;               // 20300,00 ou 20300,5
+      const dotDecimalRegex            = /^\d+(\.\d+)?$/;              // 20300.00
 
       if (brThousandsAndDecimalRegex.test(v)) {
+        // 20.300,00 -> 20300.00
         v = v.replace(/\./g, "").replace(",", ".");
       } else if (brThousandsOnlyRegex.test(v)) {
+        // 20.300 -> 20300
         v = v.replace(/\./g, "");
       } else if (commaDecimalRegex.test(v)) {
+        // 20300,50 -> 20300.50
         v = v.replace(",", ".");
       } else if (dotDecimalRegex.test(v)) {
-        // ok
+        // 20300.50 (já ok)
       } else {
+        // fallback heurístico
         const hasComma = v.includes(",");
         const hasDot = v.includes(".");
         if (hasComma && hasDot) {
@@ -783,11 +765,12 @@
         }));
     }
 
-    // Batalha Naval – potencial
+    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
+      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback (muito comum ser o "Cliente")
       let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
       if (!hAluno) {
         hAluno = headers[1] || headers[0];
@@ -799,6 +782,7 @@
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
+      // Se ainda não encontrar, tenta heurística: escolhe a coluna mais "numérica"
       if (!hTotal) {
         let bestCol = "";
         let bestScore = -1;
@@ -846,24 +830,45 @@
       }));
     }
 
-    // NOVO: normalização da aba Vendas/Renovações
     function normalizeVendas(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      const hStatus = headers.find(h => /^status$/i.test(h)) ||
-                      headers.find(h => /status/i.test(h)) || headers[0];
-      const hValor = headers.find(h => /^valor$/i.test(h)) ||
-                     headers.find(h => /valor/i.test(h)) || "";
-      const hCliente = headers.find(h => /cliente|aluno|nome/i.test(h)) || "";
-      const hMesChurn = headers.find(h => /mes.*churn|m[eê]s.*churn/i.test(h)) || "";
+      const hCliente = headers.find(h => /cliente|aluno|nome/i.test(h)) || headers[0];
+      const hValor = headers.find(h => /valor/i.test(h)) || "";
+      const hData = headers.find(h => /data.*venda|dt.*venda|data/i.test(h)) || "";
+      const hMes = headers.find(h => /mes.*churn|m[eê]s/i.test(h)) || "";
 
-      return rows.map(r => ({
-        status: r[hStatus] || "",
-        valor: hValor ? parseNumberBR(r[hValor] || "") : 0,
-        cliente: hCliente ? (r[hCliente] || "") : "",
-        mesChurn: hMesChurn ? (r[hMesChurn] || "") : ""
-      }));
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "" && (hValor ? (r[hValor] || "").trim() !== "" : false))
+        .map(r => ({
+          cliente: r[hCliente] || "",
+          valorVenda: parseNumberBR(hValor ? (r[hValor] || "") : "0"),
+          dataVenda: hData ? (r[hData] || "") : "",
+          mesChurn: hMes ? (r[hMes] || "") : ""
+        }));
+    }
+
+    function getVendasMap() {
+      const map = {};
+      allVendas.forEach(v => {
+        const key = normalizeStr(v.cliente);
+        if (!key) return;
+        if (!map[key]) {
+          map[key] = { totalVenda: 0, vendas: [] };
+        }
+        const val = v.valorVenda || 0;
+        map[key].totalVenda += val;
+        map[key].vendas.push(v);
+      });
+      return map;
+    }
+
+    function getBnavSemVenda(bnavData, vendasMap) {
+      return bnavData.filter(b => {
+        const key = normalizeStr(b.cliente);
+        return !vendasMap[key];
+      });
     }
 
     function isPrestEmDia(situacao) {
@@ -892,8 +897,8 @@
       });
     }
 
-    // KPIs (inclui Vendas + Churn por mês)
-    function buildKPIs(jornadaData, prestData, bnavData, vendasData, mesChurnFilter) {
+    // KPIs
+    function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
       const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
@@ -923,7 +928,18 @@
       );
       const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
 
-      // KPIs originais
+      // Vendas reais a partir da aba Vendas
+      const vendasMap = getVendasMap();
+      let totalVendas = 0;
+      let clientesComVenda = 0;
+      Object.keys(vendasMap).forEach(key => {
+        const tot = vendasMap[key].totalVenda || 0;
+        if (tot > 0) {
+          totalVendas += tot;
+          clientesComVenda++;
+        }
+      });
+
       document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
       document.getElementById("kpi-total-alunos-extra").textContent =
         `${concluidos} já concluíram a jornada.`;
@@ -939,68 +955,8 @@
       document.getElementById("kpi-oportunidades").textContent =
         formatCurrencyBRL(totalOportunidades);
       document.getElementById("kpi-oportunidades-extra").textContent =
-        `${clientesComOportunidade} aluno(s) com potencial comercial mapeado.`;
-
-      // NOVO: KPI de Vendas / Renovações (realizado)
-      if (vendasData && vendasData.length) {
-        const vendasValidas = vendasData.filter(v => {
-          const statusNorm = normalizeStr(v.status);
-          const isChurn = statusNorm.includes("churn") || statusNorm.includes("cancel");
-          const isPendente =
-            statusNorm.includes("aberto") ||
-            statusNorm.includes("pendente") ||
-            statusNorm.includes("aguard");
-          const valor = v.valor || 0;
-          return !isChurn && !isPendente && valor > 0;
-        });
-
-        const totalVendas = vendasValidas.reduce(
-          (acc, v) => acc + (v.valor || 0),
-          0
-        );
-
-        const alunosComVenda = new Set(
-          vendasValidas.map(v => (v.cliente || "").trim()).filter(Boolean)
-        ).size;
-
-        document.getElementById("kpi-vendas").textContent = formatCurrencyBRL(totalVendas);
-        document.getElementById("kpi-vendas-extra").textContent =
-          `${alunosComVenda} aluno(s) com venda/renovação registrada.`;
-      } else {
-        document.getElementById("kpi-vendas").textContent = "R$ 0,00";
-        document.getElementById("kpi-vendas-extra").textContent =
-          "Nenhuma venda/renovação encontrada na aba Vendas.";
-      }
-
-      // NOVO: KPI de Churn por mês (usando Status + Mês do churn)
-      if (vendasData && vendasData.length) {
-        const churnFiltrados = vendasData.filter(v => {
-          const statusNorm = normalizeStr(v.status);
-          const isChurn =
-            statusNorm.includes("churn") ||
-            statusNorm.includes("cancel");
-          if (!isChurn) return false;
-          if (mesChurnFilter !== "__all__") {
-            return normalizeStr(v.mesChurn) === normalizeStr(mesChurnFilter);
-          }
-          return true;
-        });
-
-        const totalChurn = churnFiltrados.length;
-        document.getElementById("kpi-churn-mes").textContent = totalChurn.toString();
-
-        if (mesChurnFilter === "__all__") {
-          document.getElementById("kpi-churn-mes-extra").textContent =
-            "Total de alunos com churn em toda a base (todos os meses).";
-        } else {
-          document.getElementById("kpi-churn-mes-extra").textContent =
-            `Alunos com churn no mês selecionado (${mesChurnFilter}).`;
-        }
-      } else {
-        document.getElementById("kpi-churn-mes").textContent = "0";
-        document.getElementById("kpi-churn-mes-extra").textContent =
-          "Sem dados de churn na aba Vendas.";
-      }
+        `${clientesComOportunidade} aluno(s) com potencial comercial mapeado. ` +
+        `Vendas realizadas: ${formatCurrencyBRL(totalVendas)} (${clientesComVenda} cliente(s)).`;
     }
 
     // Gráficos
@@ -1377,6 +1333,12 @@
       const prest = allPrest.find(a => normalizeStr(a.cliente) === nomeNorm);
       const bnav = allBnav.find(a => normalizeStr(a.cliente) === nomeNorm);
       const expList = allExp.filter(a => normalizeStr(a.aluno) === nomeNorm);
+      const vendasDoCliente = allVendas.filter(v => normalizeStr(v.cliente) === nomeNorm);
+
+      let totalVendaCliente = 0;
+      vendasDoCliente.forEach(v => {
+        totalVendaCliente += v.valorVenda || 0;
+      });
 
       modalContent.innerHTML = `
         <div class="modal-header">
@@ -1405,6 +1367,9 @@
             <h3>Engajamento – Let's GO Experience</h3>
             <p><strong>Registros:</strong> ${expList.length}</p>
             <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
+            <h3 style="margin-top:8px;">Vendas / Renovações</h3>
+            <p><strong>Valor total vendido:</strong> ${formatCurrencyBRL(totalVendaCliente)}</p>
+            <p><strong>Nº de vendas registradas:</strong> ${vendasDoCliente.length}</p>
           </div>
         </div>
       `;
@@ -1426,9 +1391,7 @@
       const planoSelect = document.getElementById("filter-plano");
       const mesSelect = document.getElementById("filter-exp-mes");
       const encontroSelect = document.getElementById("filter-exp-encontro");
-      const mesChurnSelect = document.getElementById("filter-mes-churn");
 
-      // Planos
       const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
       planos.sort();
       planos.forEach(p => {
@@ -1443,7 +1406,6 @@
         renderAll();
       });
 
-      // Experience – Meses
       const meses = Array.from(new Set(allExp.map(e => e.mes).filter(Boolean)));
       meses.sort();
       meses.forEach(m => {
@@ -1453,7 +1415,6 @@
         mesSelect.appendChild(opt);
       });
 
-      // Experience – Encontros
       const encontros = Array.from(new Set(allExp.map(e => e.encontro).filter(Boolean)));
       encontros.sort();
       encontros.forEach(en => {
@@ -1472,37 +1433,22 @@
         currentExpEncontroFilter = encontroSelect.value;
         renderAll();
       });
-
-      // NOVO: meses do churn (aba Vendas)
-      const mesesChurn = Array.from(
-        new Set(allVendas.map(v => v.mesChurn).filter(Boolean))
-      );
-      mesesChurn.sort();
-      mesesChurn.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        mesChurnSelect.appendChild(opt);
-      });
-
-      mesChurnSelect.addEventListener("change", () => {
-        currentMesChurnFilter = mesChurnSelect.value;
-        renderAll();
-      });
     }
 
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
       const expFiltrada = getFilteredExperience();
+      const vendasMap = getVendasMap();
+      const bnavSemVenda = getBnavSemVenda(allBnav, vendasMap);
 
-      buildKPIs(jornadaFiltrada, allPrest, allBnav, allVendas, currentMesChurnFilter);
+      buildKPIs(jornadaFiltrada, allPrest, bnavSemVenda);
       buildAvancoChart(jornadaFiltrada);
       buildChurnChart(jornadaFiltrada);
       buildPrestacaoChart(jornadaFiltrada, allPrest);
-      buildOportunidadesChart(allBnav);
+      buildOportunidadesChart(bnavSemVenda);
       buildExperienceSummary(expFiltrada);
-      buildAttentionTable(jornadaFiltrada, allPrest, allBnav);
-      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
+      buildAttentionTable(jornadaFiltrada, allPrest, bnavSemVenda);
+      buildEncerradosTable(jornadaFiltrada, allPrest, bnavSemVenda);
     }
 
     async function loadAllData() {
