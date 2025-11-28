@@ -599,8 +599,11 @@
     // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
     function parseCsv(text) {
       const rawLines = text
-        .replace(/\r/g, "\n")
-        .split("\n")
+        .replace(/
+/g, "
+")
+        .split("
+")
         .filter(l => l.trim() !== "");
 
       if (!rawLines.length) return [];
@@ -609,13 +612,13 @@
 
       const commaCount = (headerLine.match(/,/g) || []).length;
       const semicolonCount = (headerLine.match(/;/g) || []).length;
-      const tabCount = (headerLine.match(/\t/g) || []).length;
+      const tabCount = (headerLine.match(/	/g) || []).length;
 
       let sep = ",";
       if (semicolonCount > commaCount && semicolonCount >= tabCount) {
         sep = ";";
       } else if (tabCount > commaCount && tabCount > semicolonCount) {
-        sep = "\t";
+        sep = "	";
       }
 
       function splitLine(line) {
@@ -641,7 +644,7 @@
       return s
         .toString()
         .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[̀-ͯ]/g, "")
         .toLowerCase()
         .trim();
     }
@@ -661,7 +664,7 @@
       let v = s.toString().trim();
       if (!v) return 0;
 
-      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      v = v.normalize("NFD").replace(/[̀-ͯ]/g, "");
       v = v.replace(/[^0-9,.\-]+/g, "");
       if (!v) return 0;
 
@@ -1234,7 +1237,7 @@
       });
     }
 
-    // ✅ Encerrados = status do plano finalizado/encerrado/concluído (NOVA REGRA)
+    // Encerrados = status do plano finalizado/encerrado/concluído (NOVA REGRA)
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
@@ -1254,14 +1257,13 @@
       jornadaData.forEach(j => {
         const statusNorm = normalizeStr(j.statusPlano);
 
-        // NOVA REGRA: considerar encerrado APENAS pelo status do plano
         const isFinalizado =
-          statusNorm.includes("final") ||    // finalizado
-          statusNorm.includes("encerr") ||   // encerrado
-          statusNorm.includes("concl") ||    // concluído
-          statusNorm.includes("done") ||     // done
-          statusNorm.includes("finish") ||   // finished
-          statusNorm.includes("complete");   // completed
+          statusNorm.includes("final") ||    
+          statusNorm.includes("encerr") ||   
+          statusNorm.includes("concl") ||    
+          statusNorm.includes("done") ||     
+          statusNorm.includes("finish") ||   
+          statusNorm.includes("complete");   
 
         if (!isFinalizado) return;
 
@@ -1454,7 +1456,9 @@
       buildOportunidadesChart(bnavSemVenda);
       buildExperienceSummary(expFiltrada);
       buildAttentionTable(jornadaFiltrada, allPrest, bnavSemVenda);
-      buildEncerradosTable(jornadaFiltrada, allPrest, bnavSemVenda);
+
+      // ✅ Correção: finalizados usam a Batalha Naval completa
+      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
     }
 
     async function loadAllData() {
