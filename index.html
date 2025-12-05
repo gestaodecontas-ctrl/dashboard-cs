@@ -394,7 +394,7 @@
 
   <main class="page">
     <div id="loading-global" class="loading">
-      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience)...
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience, Vendas)...
     </div>
 
     <!-- KPIs -->
@@ -575,50 +575,47 @@
 
   <script>
     // URLs das abas
-    const URL_JORNADA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+    const URL_JORNADA   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
     const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
-    const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
-    const URL_BATALHA = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
-    const URL_VENDAS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
+    const URL_EXPERIENCE= "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
+    const URL_BATALHA   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+    const URL_VENDAS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
     let allJornada = [];
-    let allPrest = [];
-    let allBnav = [];
-    let allExp = [];
-    let allVendas = [];
+    let allPrest   = [];
+    let allBnav    = [];
+    let allExp     = [];
+    let allVendas  = [];
 
-    let currentPlanoFilter = "__all__";
-    let currentExpMesFilter = "__all__";
-    let currentExpEncontroFilter = "__all__";
+    let currentPlanoFilter      = "__all__";
+    let currentExpMesFilter     = "__all__";
+    let currentExpEncontroFilter= "__all__";
 
-    let chartAvanco = null;
-    let chartChurn = null;
-    let chartPrestacao = null;
+    let chartAvanco        = null;
+    let chartChurn         = null;
+    let chartPrestacao     = null;
     let chartOportunidades = null;
 
-    // CSV parser inteligente: detecta vírgula, ponto e vírgula ou TAB
+    // CSV parser inteligente
     function parseCsv(text) {
       const rawLines = text
-        .replace(/
-/g, "
-")
-        .split("
-")
+        .replace(/\r/g, "\n")
+        .split("\n")
         .filter(l => l.trim() !== "");
 
       if (!rawLines.length) return [];
 
       const headerLine = rawLines[0];
 
-      const commaCount = (headerLine.match(/,/g) || []).length;
+      const commaCount     = (headerLine.match(/,/g) || []).length;
       const semicolonCount = (headerLine.match(/;/g) || []).length;
-      const tabCount = (headerLine.match(/	/g) || []).length;
+      const tabCount       = (headerLine.match(/\t/g) || []).length;
 
       let sep = ",";
       if (semicolonCount > commaCount && semicolonCount >= tabCount) {
         sep = ";";
       } else if (tabCount > commaCount && tabCount > semicolonCount) {
-        sep = "	";
+        sep = "\t";
       }
 
       function splitLine(line) {
@@ -644,7 +641,7 @@
       return s
         .toString()
         .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "")
+        .replace(/[\u0300-\u036f]/g, "")
         .toLowerCase()
         .trim();
     }
@@ -664,7 +661,7 @@
       let v = s.toString().trim();
       if (!v) return 0;
 
-      v = v.normalize("NFD").replace(/[̀-ͯ]/g, "");
+      v = v.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       v = v.replace(/[^0-9,.\-]+/g, "");
       if (!v) return 0;
 
@@ -683,10 +680,10 @@
         // ok
       } else {
         const hasComma = v.includes(",");
-        const hasDot = v.includes(".");
+        const hasDot   = v.includes(".");
         if (hasComma && hasDot) {
           const lastComma = v.lastIndexOf(",");
-          const lastDot = v.lastIndexOf(".");
+          const lastDot   = v.lastIndexOf(".");
           if (lastComma > lastDot) {
             v = v.replace(/\./g, "").replace(",", ".");
           } else {
@@ -724,13 +721,13 @@
       const headers = Object.keys(rows[0]);
 
       const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
-      const hPlano = headers.find(h => /plano/i.test(h)) || "";
+      const hPlano   = headers.find(h => /plano/i.test(h)) || "";
       const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
                            headers.find(h => /status do plano/i.test(h)) || "";
-      const hStatus = headers.find(h => /status/i.test(h) && h !== hStatusPlano) || "";
-      const hAvanco = headers.find(h => /avan|trilha|%/i.test(h)) || "";
-      const hPrazo = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
-      const hRisco = headers.find(h => /churn|risco/i.test(h)) || "";
+      const hStatus  = headers.find(h => /^status$/i.test(h)) || "";
+      const hAvanco  = headers.find(h => /avan|trilha|%/i.test(h)) || "";
+      const hPrazo   = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
+      const hRisco   = headers.find(h => /churn|risco/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "")
@@ -739,7 +736,7 @@
           const avancoPercent = parsePercentString(avancoStr);
           return {
             status: hStatus ? (r[hStatus] || "") : "",
-            plano: hPlano ? (r[hPlano] || "") : "",
+            plano:  hPlano ? (r[hPlano] || "") : "",
             cliente: r[hCliente] || "",
             statusPlano: hStatusPlano ? (r[hStatusPlano] || "") : "",
             avancoPercent: avancoPercent || 0,
@@ -763,12 +760,11 @@
         }));
     }
 
-    // BATALHA NAVAL – usa apenas "Cliente" + "Oportunidade total por aluno"
+    // Batalha Naval – Cliente + Oportunidade total por aluno
     function normalizeBatalha(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
 
-      // Tenta achar coluna pelo nome; se não achar, usa a segunda coluna como fallback
       let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
       if (!hAluno) {
         hAluno = headers[1] || headers[0];
@@ -780,7 +776,6 @@
         headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
         "";
 
-      // Se ainda não encontrar, escolhe a coluna mais numérica
       if (!hTotal) {
         let bestCol = "";
         let bestScore = -1;
@@ -815,16 +810,16 @@
     function normalizeExperience(rows) {
       if (!rows.length) return [];
       const headers = Object.keys(rows[0]);
-      const hMes = headers.find(h => /m[eê]s/i.test(h)) || "";
+      const hMes      = headers.find(h => /m[eê]s/i.test(h)) || "";
       const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
-      const hAluno = headers.find(h => /aluno|cliente/i.test(h)) || "";
-      const hStatus = headers.find(h => /status/i.test(h)) || "";
+      const hAluno    = headers.find(h => /aluno|cliente/i.test(h)) || "";
+      const hStatus   = headers.find(h => /status/i.test(h)) || "";
 
       return rows.map(r => ({
-        mes: hMes ? (r[hMes] || "") : "",
+        mes:      hMes ? (r[hMes] || "") : "",
         encontro: hEncontro ? (r[hEncontro] || "") : "",
-        aluno: hAluno ? (r[hAluno] || "") : "",
-        status: hStatus ? (r[hStatus] || "") : ""
+        aluno:    hAluno ? (r[hAluno] || "") : "",
+        status:   hStatus ? (r[hStatus] || "") : ""
       }));
     }
 
@@ -833,17 +828,17 @@
       const headers = Object.keys(rows[0]);
 
       const hCliente = headers.find(h => /cliente|aluno|nome/i.test(h)) || headers[0];
-      const hValor = headers.find(h => /valor/i.test(h)) || "";
-      const hData = headers.find(h => /data.*venda|dt.*venda|data/i.test(h)) || "";
-      const hMes = headers.find(h => /mes.*churn|m[eê]s/i.test(h)) || "";
+      const hValor   = headers.find(h => /valor/i.test(h)) || "";
+      const hData    = headers.find(h => /data.*venda|dt.*venda|data/i.test(h)) || "";
+      const hMes     = headers.find(h => /mes.*churn|m[eê]s/i.test(h)) || "";
 
       return rows
         .filter(r => (r[hCliente] || "").trim() !== "" && (hValor ? (r[hValor] || "").trim() !== "" : false))
         .map(r => ({
-          cliente: r[hCliente] || "",
+          cliente:    r[hCliente] || "",
           valorVenda: parseNumberBR(hValor ? (r[hValor] || "") : "0"),
-          dataVenda: hData ? (r[hData] || "") : "",
-          mesChurn: hMes ? (r[hMes] || "") : ""
+          dataVenda:  hData ? (r[hData] || "") : "",
+          mesChurn:   hMes ? (r[hMes] || "") : ""
         }));
     }
 
@@ -899,7 +894,11 @@
     function buildKPIs(jornadaData, prestData, bnavData) {
       const totalAlunos = jornadaData.length;
 
-      const concluidos = jornadaData.filter(j => (j.avancoPercent || 0) >= 99).length;
+      const concluidos = jornadaData.filter(j => {
+        const st = normalizeStr(j.statusPlano);
+        return st.includes("encerr") || st.includes("final") || st.includes("concl");
+      }).length;
+
       const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
 
       const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
@@ -926,7 +925,7 @@
       );
       const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
 
-      // Vendas reais a partir da aba Vendas
+      // Vendas reais
       const vendasMap = getVendasMap();
       let totalVendas = 0;
       let clientesComVenda = 0;
@@ -953,7 +952,7 @@
       document.getElementById("kpi-oportunidades").textContent =
         formatCurrencyBRL(totalOportunidades);
       document.getElementById("kpi-oportunidades-extra").textContent =
-        `${clientesComOportunidade} aluno(s) com potencial comercial mapeado. ` +
+        `${clientesComOportunidade} aluno(s) com potencial mapeado. ` +
         `Vendas realizadas: ${formatCurrencyBRL(totalVendas)} (${clientesComVenda} cliente(s)).`;
     }
 
@@ -963,7 +962,7 @@
       if (chartAvanco) chartAvanco.destroy();
 
       const labels = jornadaData.map(j => j.cliente);
-      const data = jornadaData.map(j => j.avancoPercent || 0);
+      const data   = jornadaData.map(j => j.avancoPercent || 0);
 
       chartAvanco = new Chart(ctx, {
         type: "bar",
@@ -983,9 +982,7 @@
           responsive: true,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: { label: ctx => formatPercent(ctx.parsed.y) }
-            }
+            tooltip: { callbacks: { label: ctx => formatPercent(ctx.parsed.y) } }
           },
           scales: {
             y: {
@@ -1012,15 +1009,14 @@
       });
 
       const labels = Object.keys(riskCounts);
-      const data = Object.values(riskCounts);
+      const data   = Object.values(riskCounts);
 
       const colors = labels.map(label => {
-        const lower = label.toLowerCase();
-        if (lower.includes("alto")) return "#CC3333";
-        if (lower.includes("moderado")) return "#C8A300";
-        if (lower.includes("saud")) return "#2ECC71";
-        if (lower.includes("concl")) return "#1F73B7";
-        if (lower.includes("meio")) return "#8FA9C9";
+        const lower = normalizeStr(label);
+        if (lower.includes("alto"))      return "#CC3333";
+        if (lower.includes("moderado"))  return "#C8A300";
+        if (lower.includes("encerr"))    return "#1F73B7";
+        if (lower.includes("saud"))      return "#2ECC71";
         return "#0A1A2F";
       });
 
@@ -1083,8 +1079,8 @@
       if (chartOportunidades) chartOportunidades.destroy();
 
       const filtered = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0);
-      const labels = filtered.map(b => b.cliente);
-      const data = filtered.map(b => b.oportunidadeTotal || 0);
+      const labels   = filtered.map(b => b.cliente);
+      const data     = filtered.map(b => b.oportunidadeTotal || 0);
 
       chartOportunidades = new Chart(ctx, {
         type: "bar",
@@ -1104,9 +1100,7 @@
           responsive: true,
           plugins: {
             legend: { display: false },
-            tooltip: {
-              callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) }
-            }
+            tooltip: { callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) } }
           },
           scales: {
             y: {
@@ -1127,7 +1121,8 @@
 
       const totalConvites = expDataFiltered.length;
       const confirmados = expDataFiltered.filter(e =>
-        normalizeStr(e.status).includes("confirm")).length;
+        normalizeStr(e.status).includes("confirm")
+      ).length;
 
       container.innerHTML = `
         <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
@@ -1157,22 +1152,22 @@
 
       jornadaData.forEach(j => {
         const cliente = j.cliente;
-        const prest = prestPorCliente[normalizeStr(cliente)];
-        const bnav = bnavPorCliente[normalizeStr(cliente)];
+        const prest   = prestPorCliente[normalizeStr(cliente)];
+        const bnav    = bnavPorCliente[normalizeStr(cliente)];
 
-        const risco = j.riscoChurn || "";
-        const prazo = j.prazo || "";
-        const avanco = j.avancoPercent || 0;
-        const prestSit = prest ? (prest.situacaoAtual || "") : "";
+        const risco        = j.riscoChurn || "";
+        const prazo        = j.prazo || "";
+        const avanco       = j.avancoPercent || 0;
+        const prestSit     = prest ? (prest.situacaoAtual || "") : "";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
 
         const riscoNorm = normalizeStr(risco);
         const prazoNorm = normalizeStr(prazo);
 
-        const riscoCritico = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
-        const atrasoTrilha = prazoNorm.includes("atras");
-        const prestRuim = !isPrestEmDia(prestSit);
-        const poucoAvanco = avanco < 50;
+        const riscoCritico  = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
+        const atrasoTrilha  = prazoNorm.includes("atras");
+        const prestRuim     = !isPrestEmDia(prestSit);
+        const poucoAvanco   = avanco < 50;
         const temOportunidade = oportunidade > 0;
 
         if (riscoCritico || atrasoTrilha || prestRuim || poucoAvanco || temOportunidade) {
@@ -1237,7 +1232,7 @@
       });
     }
 
-    // Encerrados = status do plano finalizado/encerrado/concluído (NOVA REGRA)
+    // Encerrados = status do plano finalizado/encerrado/concluído
     function buildEncerradosTable(jornadaData, prestData, bnavData) {
       const tbody = document.getElementById("encerrados-body");
       tbody.innerHTML = "";
@@ -1258,20 +1253,20 @@
         const statusNorm = normalizeStr(j.statusPlano);
 
         const isFinalizado =
-          statusNorm.includes("final") ||    
-          statusNorm.includes("encerr") ||   
-          statusNorm.includes("concl") ||    
-          statusNorm.includes("done") ||     
-          statusNorm.includes("finish") ||   
-          statusNorm.includes("complete");   
+          statusNorm.includes("final") ||
+          statusNorm.includes("encerr") ||
+          statusNorm.includes("concl") ||
+          statusNorm.includes("done")  ||
+          statusNorm.includes("finish")||
+          statusNorm.includes("complete");
 
         if (!isFinalizado) return;
 
         const cliente = j.cliente;
-        const prest = prestPorCliente[normalizeStr(cliente)];
-        const bnav = bnavPorCliente[normalizeStr(cliente)];
+        const prest   = prestPorCliente[normalizeStr(cliente)];
+        const bnav    = bnavPorCliente[normalizeStr(cliente)];
 
-        const prestSit = prest ? (prest.situacaoAtual || "") : "–";
+        const prestSit     = prest ? (prest.situacaoAtual || "") : "–";
         const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
 
         rows.push({
@@ -1337,16 +1332,14 @@
 
       const nomeNorm = normalizeStr(nome);
 
-      const j = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const prest = allPrest.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const bnav = allBnav.find(a => normalizeStr(a.cliente) === nomeNorm);
-      const expList = allExp.filter(a => normalizeStr(a.aluno) === nomeNorm);
-      const vendasDoCliente = allVendas.filter(v => normalizeStr(v.cliente) === nomeNorm);
+      const j         = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const prest     = allPrest.find(a   => normalizeStr(a.cliente) === nomeNorm);
+      const bnav      = allBnav.find(a    => normalizeStr(a.cliente) === nomeNorm);
+      const expList   = allExp.filter(a   => normalizeStr(a.aluno)   === nomeNorm);
+      const vendasCli = allVendas.filter(v=> normalizeStr(v.cliente) === nomeNorm);
 
       let totalVendaCliente = 0;
-      vendasDoCliente.forEach(v => {
-        totalVendaCliente += v.valorVenda || 0;
-      });
+      vendasCli.forEach(v => { totalVendaCliente += v.valorVenda || 0; });
 
       modalContent.innerHTML = `
         <div class="modal-header">
@@ -1377,7 +1370,7 @@
             <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
             <h3 style="margin-top:8px;">Vendas / Renovações</h3>
             <p><strong>Valor total vendido:</strong> ${formatCurrencyBRL(totalVendaCliente)}</p>
-            <p><strong>Nº de vendas registradas:</strong> ${vendasDoCliente.length}</p>
+            <p><strong>Nº de vendas registradas:</strong> ${vendasCli.length}</p>
           </div>
         </div>
       `;
@@ -1396,8 +1389,8 @@
 
     // Filtros
     function initFilters() {
-      const planoSelect = document.getElementById("filter-plano");
-      const mesSelect = document.getElementById("filter-exp-mes");
+      const planoSelect    = document.getElementById("filter-plano");
+      const mesSelect      = document.getElementById("filter-exp-mes");
       const encontroSelect = document.getElementById("filter-exp-encontro");
 
       const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
@@ -1445,9 +1438,9 @@
 
     function renderAll() {
       const jornadaFiltrada = getFilteredJornada();
-      const expFiltrada = getFilteredExperience();
-      const vendasMap = getVendasMap();
-      const bnavSemVenda = getBnavSemVenda(allBnav, vendasMap);
+      const expFiltrada     = getFilteredExperience();
+      const vendasMap       = getVendasMap();
+      const bnavSemVenda    = getBnavSemVenda(allBnav, vendasMap);
 
       buildKPIs(jornadaFiltrada, allPrest, bnavSemVenda);
       buildAvancoChart(jornadaFiltrada);
@@ -1456,9 +1449,7 @@
       buildOportunidadesChart(bnavSemVenda);
       buildExperienceSummary(expFiltrada);
       buildAttentionTable(jornadaFiltrada, allPrest, bnavSemVenda);
-
-      // ✅ Correção: finalizados usam a Batalha Naval completa
-      buildEncerradosTable(jornadaFiltrada, allPrest, allBnav);
+      buildEncerradosTable(jornadaFiltrada, allPrest, bnavSemVenda);
     }
 
     async function loadAllData() {
@@ -1472,10 +1463,10 @@
         ]);
 
         allJornada = normalizeJornada(jornadaRows);
-        allPrest = normalizePrestacao(prestRows);
-        allBnav = normalizeBatalha(batalhaRows);
-        allExp = normalizeExperience(expRows);
-        allVendas = normalizeVendas(vendasRows);
+        allPrest   = normalizePrestacao(prestRows);
+        allBnav    = normalizeBatalha(batalhaRows);
+        allExp     = normalizeExperience(expRows);
+        allVendas  = normalizeVendas(vendasRows);
 
         document.getElementById("loading-global").textContent = "Dados carregados.";
 
