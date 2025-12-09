@@ -655,4 +655,812 @@
       return isNaN(n) ? 0 : n;
     }
 
-    function parseNumberBR(s)
+    // Numérico BR simples e robusto
+    function parseNumberBR(s) {
+      if (s == null) return 0;
+      let v = s.toString().trim();
+      if (!v) return 0;
+      // remove tudo que não é dígito, ponto, vírgula ou sinal
+      v = v.replace(/[^0-9,.\-]/g, "");
+      // se tiver vírgula, assume que é decimal BR
+      if (v.includes(",")) {
+        v = v.replace(/\./g, "").replace(",", ".");
+      }
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
+    }
+
+    function formatPercent(num) {
+      if (num == null || isNaN(num)) return "-";
+      return num.toFixed(1).replace(".", ",") + "%";
+    }
+
+    function formatCurrencyBRL(num) {
+      if (num == null || isNaN(num)) return "R$ 0,00";
+      return num.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    }
+
+    async function fetchCsv(url) {
+      const res = await fetch(url);
+      const text = await res.text();
+      return parseCsv(text);
+    }
+
+    // Normalizações
+    function normalizeJornada(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hPlano   = headers.find(h => /plano/i.test(h)) || "";
+      const hStatusPlano = headers.find(h => /status.*plano/i.test(h)) ||
+                           headers.find(h => /status do plano/i.test(h)) || "";
+      const hStatus  = headers.find(h => /^status$/i.test(h)) || "";
+      const hAvanco  = headers.find(h => /avan|trilha|%/i.test(h)) || "";
+      const hPrazo   = headers.find(h => /cronograma|prazo|atraso/i.test(h)) || "";
+      const hRisco   = headers.find(h => /churn|risco/i.test(h)) || "";
+
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => {
+          const avancoStr = hAvanco ? (r[hAvanco] || "") : "";
+          const avancoPercent = parsePercentString(avancoStr);
+          return {
+            status: hStatus ? (r[hStatus] || "") : "",
+            plano:  hPlano ? (r[hPlano] || "") : "",
+            cliente: r[hCliente] || "",
+            statusPlano: hStatusPlano ? (r[hStatusPlano] || "") : "",
+            avancoPercent: avancoPercent || 0,
+            prazo: hPrazo ? (r[hPrazo] || "") : "",
+            riscoChurn: hRisco ? (r[hRisco] || "") : ""
+          };
+        });
+    }
+
+    function normalizePrestacao(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+      const hCliente = headers.find(h => /cliente|aluno/i.test(h)) || headers[0];
+      const hSituacao = headers.find(h => /situa.*atual/i.test(h)) ||
+                        headers.find(h => /situa/i.test(h)) || "";
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "")
+        .map(r => ({
+          cliente: r[hCliente] || "",
+          situacaoAtual: hSituacao ? (r[hSituacao] || "") : ""
+        }));
+    }
+
+    // Batalha Naval – Cliente + Oportunidade total por aluno
+    function normalizeBatalha(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      let hAluno = headers.find(h => /aluno|cliente|nome/i.test(h));
+      if (!hAluno) {
+        hAluno = headers[1] || headers[0];
+      }
+
+      let hTotal =
+        headers.find(h => /oportunidade.*total.*aluno/i.test(h)) ||
+        headers.find(h => /total.*aluno/i.test(h)) ||
+        headers.find(h => /oportunidade/i.test(h) && /total/i.test(h)) ||
+        "";
+
+      if (!hTotal) {
+        let bestCol = "";
+        let bestScore = -1;
+        headers.forEach(h => {
+          let score = 0;
+          rows.forEach(r => {
+            const val = r[h];
+            if (!val) return;
+            const n = parseNumberBR(val);
+            if (!isNaN(n) && n !== 0) score++;
+          });
+          if (score > bestScore) {
+            bestScore = score;
+            bestCol = h;
+          }
+        });
+        hTotal = bestCol || headers[0];
+      }
+
+      return rows
+        .filter(r => (r[hAluno] || "").trim() !== "")
+        .map(r => {
+          const totalRaw = hTotal ? (r[hTotal] || "") : "";
+          const total = parseNumberBR(totalRaw);
+          return {
+            cliente: r[hAluno] || "",
+            oportunidadeTotal: total
+          };
+        });
+    }
+
+    function normalizeExperience(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+      const hMes      = headers.find(h => /m[eê]s/i.test(h)) || "";
+      const hEncontro = headers.find(h => /encontro/i.test(h)) || "";
+      const hAluno    = headers.find(h => /aluno|cliente/i.test(h)) || "";
+      const hStatus   = headers.find(h => /status/i.test(h)) || "";
+
+      return rows.map(r => ({
+        mes:      hMes ? (r[hMes] || "") : "",
+        encontro: hEncontro ? (r[hEncontro] || "") : "",
+        aluno:    hAluno ? (r[hAluno] || "") : "",
+        status:   hStatus ? (r[hStatus] || "") : ""
+      }));
+    }
+
+    function normalizeVendas(rows) {
+      if (!rows.length) return [];
+      const headers = Object.keys(rows[0]);
+
+      const hCliente = headers.find(h => /cliente|aluno|nome/i.test(h)) || headers[0];
+      const hValor   = headers.find(h => /valor/i.test(h)) || "";
+      const hData    = headers.find(h => /data.*venda|dt.*venda|data/i.test(h)) || "";
+      const hMes     = headers.find(h => /mes.*churn|m[eê]s/i.test(h)) || "";
+
+      return rows
+        .filter(r => (r[hCliente] || "").trim() !== "" && (hValor ? (r[hValor] || "").trim() !== "" : false))
+        .map(r => ({
+          cliente:    r[hCliente] || "",
+          valorVenda: parseNumberBR(hValor ? (r[hValor] || "") : "0"),
+          dataVenda:  hData ? (r[hData] || "") : "",
+          mesChurn:   hMes ? (r[hMes] || "") : ""
+        }));
+    }
+
+    function getVendasMap() {
+      const map = {};
+      allVendas.forEach(v => {
+        const key = normalizeStr(v.cliente);
+        if (!key) return;
+        if (!map[key]) {
+          map[key] = { totalVenda: 0, vendas: [] };
+        }
+        const val = v.valorVenda || 0;
+        map[key].totalVenda += val;
+        map[key].vendas.push(v);
+      });
+      return map;
+    }
+
+    function getBnavSemVenda(bnavData, vendasMap) {
+      return bnavData.filter(b => {
+        const key = normalizeStr(b.cliente);
+        return !vendasMap[key];
+      });
+    }
+
+    function isPrestEmDia(situacao) {
+      const s = normalizeStr(situacao);
+      if (!s) return false;
+      if (!s.includes("preench")) return false;
+      if (s.includes("nao") || s.includes("não")) return false;
+      return true;
+    }
+
+    function getFilteredJornada() {
+      if (currentPlanoFilter === "__all__") return allJornada;
+      return allJornada.filter(j => normalizeStr(j.plano) === normalizeStr(currentPlanoFilter));
+    }
+
+    function getFilteredExperience() {
+      return allExp.filter(e => {
+        let ok = true;
+        if (currentExpMesFilter !== "__all__") {
+          ok = ok && normalizeStr(e.mes) === normalizeStr(currentExpMesFilter);
+        }
+        if (currentExpEncontroFilter !== "__all__") {
+          ok = ok && normalizeStr(e.encontro) === normalizeStr(currentExpEncontroFilter);
+        }
+        return ok;
+      });
+    }
+
+    // KPIs
+    function buildKPIs(jornadaData, prestData, bnavData) {
+      const totalAlunos = jornadaData.length;
+
+      const concluidos = jornadaData.filter(j => {
+        const st = normalizeStr(j.statusPlano);
+        return st.includes("encerr") || st.includes("final") || st.includes("concl");
+      }).length;
+
+      const taxaSucesso = totalAlunos > 0 ? (concluidos / totalAlunos) * 100 : 0;
+
+      const mediasAvanco = jornadaData.map(j => j.avancoPercent || 0);
+      const mediaAvanco = mediasAvanco.length
+        ? mediasAvanco.reduce((a, b) => a + b, 0) / mediasAvanco.length
+        : 0;
+
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      let prestEmDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) prestEmDia++;
+      });
+      const taxaPrestacao = totalAlunos > 0 ? (prestEmDia / totalAlunos) * 100 : 0;
+
+      const totalOportunidades = bnavData.reduce(
+        (acc, cur) => acc + (cur.oportunidadeTotal || 0),
+        0
+      );
+      const clientesComOportunidade = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0).length;
+
+      const vendasMap = getVendasMap();
+      let totalVendas = 0;
+      let clientesComVenda = 0;
+      Object.keys(vendasMap).forEach(key => {
+        const tot = vendasMap[key].totalVenda || 0;
+        if (tot > 0) {
+          totalVendas += tot;
+          clientesComVenda++;
+        }
+      });
+
+      document.getElementById("kpi-total-alunos").textContent = totalAlunos.toString();
+      document.getElementById("kpi-total-alunos-extra").textContent =
+        `${concluidos} já concluíram a jornada.`;
+
+      document.getElementById("kpi-taxasucesso").textContent = formatPercent(taxaSucesso);
+      document.getElementById("kpi-taxasucesso-extra").textContent =
+        `Média de avanço: ${formatPercent(mediaAvanco)}.`;
+
+      document.getElementById("kpi-prestacao").textContent = formatPercent(taxaPrestacao);
+      document.getElementById("kpi-prestacao-extra").textContent =
+        `${prestEmDia} de ${totalAlunos} aluno(s) com prestação em dia.`;
+
+      document.getElementById("kpi-oportunidades").textContent =
+        formatCurrencyBRL(totalOportunidades);
+      document.getElementById("kpi-oportunidades-extra").textContent =
+        `${clientesComOportunidade} aluno(s) com potencial mapeado. ` +
+        `Vendas realizadas: ${formatCurrencyBRL(totalVendas)} (${clientesComVenda} cliente(s)).`;
+    }
+
+    // Gráficos
+    function buildAvancoChart(jornadaData) {
+      const ctx = document.getElementById("chart-avanco").getContext("2d");
+      if (chartAvanco) chartAvanco.destroy();
+
+      const labels = jornadaData.map(j => j.cliente);
+      const data   = jornadaData.map(j => j.avancoPercent || 0);
+
+      chartAvanco = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "% de avanço",
+            data,
+            backgroundColor: "rgba(31, 115, 183, 0.7)",
+            borderColor: "#1F73B7",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => formatPercent(ctx.parsed.y) } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              ticks: { callback: v => v + "%" }
+            },
+            x: {
+              ticks: { autoSkip: false, maxRotation: 45, minRotation: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    // VERSÃO NOVA do gráfico de churn (por texto literal)
+    function buildChurnChart(jornadaData) {
+      const ctx = document.getElementById("chart-churn").getContext("2d");
+      if (chartChurn) chartChurn.destroy();
+
+      const riskCounts = {};
+      jornadaData.forEach(j => {
+        const label = (j.riscoChurn || "Não informado").trim();
+        riskCounts[label] = (riskCounts[label] || 0) + 1;
+      });
+
+      const labels = Object.keys(riskCounts);
+      const data   = Object.values(riskCounts);
+
+      const colors = labels.map(label => {
+        const l = label.toLowerCase();
+
+        if (l.includes("alto"))     return "#CC3333";  // vermelho
+        if (l.includes("moderado")) return "#C8A300";  // amarelo
+        if (l.includes("saud"))     return "#2ECC71";  // verde
+        if (l.includes("encerr"))   return "#1F73B7";  // azul
+        if (l.includes("alert"))    return "#FF7F0E";  // laranja
+
+        return "#666666"; // fallback cinza
+      });
+
+      chartChurn = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels,
+          datasets: [{
+            data,
+            backgroundColor: colors,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: "bottom" },
+            tooltip: {
+              callbacks: {
+                label: (ctx) => `${ctx.label}: ${ctx.raw}`
+              }
+            }
+          },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildPrestacaoChart(jornadaData, prestData) {
+      const ctx = document.getElementById("chart-prestacao").getContext("2d");
+      if (chartPrestacao) chartPrestacao.destroy();
+
+      const totalAlunos = jornadaData.length;
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      let emDia = 0;
+      jornadaData.forEach(j => {
+        const p = prestPorCliente[normalizeStr(j.cliente)];
+        const sit = p ? p.situacaoAtual : "";
+        if (isPrestEmDia(sit)) emDia++;
+      });
+      const nao = Math.max(totalAlunos - emDia, 0);
+
+      chartPrestacao = new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Em dia", "Não enviada / atraso"],
+          datasets: [{
+            data: [emDia, nao],
+            backgroundColor: ["#158152", "#A32035"],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: "bottom" } },
+          cutout: "55%"
+        }
+      });
+    }
+
+    function buildOportunidadesChart(bnavData) {
+      const ctx = document.getElementById("chart-oportunidades").getContext("2d");
+      if (chartOportunidades) chartOportunidades.destroy();
+
+      const filtered = bnavData.filter(b => (b.oportunidadeTotal || 0) > 0);
+      const labels   = filtered.map(b => b.cliente);
+      const data     = filtered.map(b => b.oportunidadeTotal || 0);
+
+      chartOportunidades = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Oportunidade (R$)",
+            data,
+            backgroundColor: "rgba(200, 163, 0, 0.75)",
+            borderColor: "#C8A300",
+            borderWidth: 1,
+            borderRadius: 8,
+            maxBarThickness: 40
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => formatCurrencyBRL(ctx.parsed.y) } }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: v => formatCurrencyBRL(v) }
+            }
+          }
+        }
+      });
+    }
+
+    function buildExperienceSummary(expDataFiltered) {
+      const container = document.getElementById("experience-summary");
+      if (!expDataFiltered.length) {
+        container.textContent = "Sem dados de Experience para os filtros selecionados.";
+        return;
+      }
+
+      const totalConvites = expDataFiltered.length;
+      const confirmados = expDataFiltered.filter(e =>
+        normalizeStr(e.status).includes("confirm")
+      ).length;
+
+      container.innerHTML = `
+        <p><strong>${totalConvites}</strong> registro(s) de abordagem dentro dos filtros.</p>
+        <p><strong>${confirmados}</strong> aluno(s) confirmaram presença em encontros.</p>
+        <p style="margin-top:6px;font-size:11px;color:#7A8194;">
+          Ajuste os filtros de mês e encontro para analisar turmas específicas.
+        </p>
+      `;
+    }
+
+    // Tabela de atenção
+    function buildAttentionTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("attention-body");
+      tbody.innerHTML = "";
+
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      const bnavPorCliente = {};
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
+
+      const rows = [];
+
+      jornadaData.forEach(j => {
+        const cliente = j.cliente;
+        const prest   = prestPorCliente[normalizeStr(cliente)];
+        const bnav    = bnavPorCliente[normalizeStr(cliente)];
+
+        const risco        = j.riscoChurn || "";
+        const prazo        = j.prazo || "";
+        const avanco       = j.avancoPercent || 0;
+        const prestSit     = prest ? (prest.situacaoAtual || "") : "";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        const riscoNorm = normalizeStr(risco);
+        const prazoNorm = normalizeStr(prazo);
+
+        const riscoCritico  = riscoNorm.includes("alto") || riscoNorm.includes("moderado");
+        const atrasoTrilha  = prazoNorm.includes("atras");
+        const prestRuim     = !isPrestEmDia(prestSit);
+        const poucoAvanco   = avanco < 50;
+        const temOportunidade = oportunidade > 0;
+
+        if (riscoCritico || atrasoTrilha || prestRuim || poucoAvanco || temOportunidade) {
+          rows.push({
+            cliente,
+            plano: j.plano,
+            avanco,
+            prazo,
+            risco,
+            prestacao: prestSit || "–",
+            oportunidade
+          });
+        }
+      });
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 7;
+        td.textContent = "Nenhum aluno em atenção especial com as regras atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrazo = document.createElement("td");
+        tdPrazo.textContent = r.prazo || "–";
+        tr.appendChild(tdPrazo);
+
+        const tdRisco = document.createElement("td");
+        tdRisco.textContent = r.risco || "–";
+        tr.appendChild(tdRisco);
+
+        const tdPrest = document.createElement("td");
+        tdPrest.textContent = r.prestacao || "–";
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        tdOp.textContent = r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Encerrados
+    function buildEncerradosTable(jornadaData, prestData, bnavData) {
+      const tbody = document.getElementById("encerrados-body");
+      tbody.innerHTML = "";
+
+      const prestPorCliente = {};
+      prestData.forEach(p => {
+        prestPorCliente[normalizeStr(p.cliente)] = p;
+      });
+
+      const bnavPorCliente = {};
+      bnavData.forEach(b => {
+        bnavPorCliente[normalizeStr(b.cliente)] = b;
+      });
+
+      const rows = [];
+
+      jornadaData.forEach(j => {
+        const statusNorm = normalizeStr(j.statusPlano);
+
+        const isFinalizado =
+          statusNorm.includes("final") ||
+          statusNorm.includes("encerr") ||
+          statusNorm.includes("concl") ||
+          statusNorm.includes("done")  ||
+          statusNorm.includes("finish")||
+          statusNorm.includes("complete");
+
+        if (!isFinalizado) return;
+
+        const cliente = j.cliente;
+        const prest   = prestPorCliente[normalizeStr(cliente)];
+        const bnav    = bnavPorCliente[normalizeStr(cliente)];
+
+        const prestSit     = prest ? (prest.situacaoAtual || "") : "–";
+        const oportunidade = bnav ? (bnav.oportunidadeTotal || 0) : 0;
+
+        rows.push({
+          cliente,
+          plano: j.plano,
+          statusPlano: j.statusPlano || "",
+          avanco: j.avancoPercent || 0,
+          prestacao: prestSit,
+          oportunidade
+        });
+      });
+
+      if (!rows.length) {
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = 6;
+        td.textContent = "Nenhum aluno encerrado encontrado para os filtros atuais.";
+        td.style.fontSize = "12px";
+        td.style.color = "#7A8194";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+      }
+
+      rows.forEach(r => {
+        const tr = document.createElement("tr");
+
+        const tdCliente = document.createElement("td");
+        tdCliente.textContent = r.cliente;
+        tdCliente.classList.add("link-cliente");
+        tdCliente.addEventListener("click", () => openAlunoModal(r.cliente));
+        tr.appendChild(tdCliente);
+
+        const tdPlano = document.createElement("td");
+        tdPlano.textContent = r.plano || "–";
+        tr.appendChild(tdPlano);
+
+        const tdStatus = document.createElement("td");
+        tdStatus.textContent = r.statusPlano || "–";
+        tr.appendChild(tdStatus);
+
+        const tdAvanco = document.createElement("td");
+        tdAvanco.textContent = formatPercent(r.avanco);
+        tr.appendChild(tdAvanco);
+
+        const tdPrest = document.createElement("td");
+        tdPrest.textContent = r.prestacao || "–";
+        tr.appendChild(tdPrest);
+
+        const tdOp = document.createElement("td");
+        tdOp.textContent =
+          r.oportunidade > 0 ? formatCurrencyBRL(r.oportunidade) : "–";
+        tr.appendChild(tdOp);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal
+    function openAlunoModal(nome) {
+      const modalOverlay = document.getElementById("aluno-modal-overlay");
+      const modalContent = document.getElementById("modal-content");
+
+      const nomeNorm = normalizeStr(nome);
+
+      const j         = allJornada.find(a => normalizeStr(a.cliente) === nomeNorm);
+      const prest     = allPrest.find(a   => normalizeStr(a.cliente) === nomeNorm);
+      const bnav      = allBnav.find(a    => normalizeStr(a.cliente) === nomeNorm);
+      const expList   = allExp.filter(a   => normalizeStr(a.aluno)   === nomeNorm);
+      const vendasCli = allVendas.filter(v=> normalizeStr(v.cliente) === nomeNorm);
+
+      let totalVendaCliente = 0;
+      vendasCli.forEach(v => { totalVendaCliente += v.valorVenda || 0; });
+
+      modalContent.innerHTML = `
+        <div class="modal-header">
+          <h2>${nome}</h2>
+          <span>${j ? (j.plano || "Plano não informado") : ""}</span>
+        </div>
+        <div class="modal-grid">
+          <div class="modal-block">
+            <h3>Jornada</h3>
+            <p><strong>Avanço:</strong> ${formatPercent(j ? j.avancoPercent : 0)}</p>
+            <p><strong>Status do plano:</strong> ${j ? (j.statusPlano || "–") : "–"}</p>
+            <p><strong>Prazo:</strong> ${j ? (j.prazo || "–") : "–"}</p>
+          </div>
+          <div class="modal-block">
+            <h3>Prestação de contas</h3>
+            <p><strong>Situação atual:</strong> ${prest ? (prest.situacaoAtual || "–") : "–"}</p>
+          </div>
+        </div>
+
+        <div class="modal-grid" style="margin-top:10px;">
+          <div class="modal-block">
+            <h3>Oportunidades (Batalha Naval)</h3>
+            <p><strong>Potencial mapeado:</strong> ${formatCurrencyBRL(bnav ? (bnav.oportunidadeTotal || 0) : 0)}</p>
+          </div>
+          <div class="modal-block">
+            <h3>Engajamento – Let's GO Experience</h3>
+            <p><strong>Registros:</strong> ${expList.length}</p>
+            <p><strong>Confirmados:</strong> ${expList.filter(e => normalizeStr(e.status).includes("confirm")).length}</p>
+            <h3 style="margin-top:8px;">Vendas / Renovações</h3>
+            <p><strong>Valor total vendido:</strong> ${formatCurrencyBRL(totalVendaCliente)}</p>
+            <p><strong>Nº de vendas registradas:</strong> ${vendasCli.length}</p>
+          </div>
+        </div>
+      `;
+
+      modalOverlay.classList.remove("hidden");
+    }
+
+    function closeAlunoModal() {
+      document.getElementById("aluno-modal-overlay").classList.add("hidden");
+    }
+
+    document.getElementById("modal-close-btn").addEventListener("click", closeAlunoModal);
+    document.getElementById("aluno-modal-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "aluno-modal-overlay") closeAlunoModal();
+    });
+
+    // Filtros
+    function initFilters() {
+      const planoSelect    = document.getElementById("filter-plano");
+      const mesSelect      = document.getElementById("filter-exp-mes");
+      const encontroSelect = document.getElementById("filter-exp-encontro");
+
+      const planos = Array.from(new Set(allJornada.map(j => j.plano).filter(Boolean)));
+      planos.sort();
+      planos.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        planoSelect.appendChild(opt);
+      });
+
+      planoSelect.addEventListener("change", () => {
+        currentPlanoFilter = planoSelect.value;
+        renderAll();
+      });
+
+      const meses = Array.from(new Set(allExp.map(e => e.mes).filter(Boolean)));
+      meses.sort();
+      meses.forEach(m => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        mesSelect.appendChild(opt);
+      });
+
+      const encontros = Array.from(new Set(allExp.map(e => e.encontro).filter(Boolean)));
+      encontros.sort();
+      encontros.forEach(en => {
+        const opt = document.createElement("option");
+        opt.value = en;
+        opt.textContent = en;
+        encontroSelect.appendChild(opt);
+      });
+
+      mesSelect.addEventListener("change", () => {
+        currentExpMesFilter = mesSelect.value;
+        renderAll();
+      });
+
+      encontroSelect.addEventListener("change", () => {
+        currentExpEncontroFilter = encontroSelect.value;
+        renderAll();
+      });
+    }
+
+    function renderAll() {
+      const jornadaFiltrada = getFilteredJornada();
+      const expFiltrada     = getFilteredExperience();
+      const vendasMap       = getVendasMap();
+      const bnavSemVenda    = getBnavSemVenda(allBnav, vendasMap);
+
+      buildKPIs(jornadaFiltrada, allPrest, bnavSemVenda);
+      buildAvancoChart(jornadaFiltrada);
+      buildChurnChart(jornadaFiltrada);
+      buildPrestacaoChart(jornadaFiltrada, allPrest);
+      buildOportunidadesChart(bnavSemVenda);
+      buildExperienceSummary(expFiltrada);
+      buildAttentionTable(jornadaFiltrada, allPrest, bnavSemVenda);
+      buildEncerradosTable(jornadaFiltrada, allPrest, bnavSemVenda);
+    }
+
+    async function loadAllData() {
+      try {
+        const [jornadaRows, prestRows, batalhaRows, expRows, vendasRows] = await Promise.all([
+          fetchCsv(URL_JORNADA),
+          fetchCsv(URL_PRESTACAO),
+          fetchCsv(URL_BATALHA),
+          fetchCsv(URL_EXPERIENCE),
+          fetchCsv(URL_VENDAS)
+        ]);
+
+        allJornada = normalizeJornada(jornadaRows);
+        allPrest   = normalizePrestacao(prestRows);
+        allBnav    = normalizeBatalha(batalhaRows);
+        allExp     = normalizeExperience(expRows);
+        allVendas  = normalizeVendas(vendasRows);
+
+        document.getElementById("loading-global").textContent = "Dados carregados.";
+
+        initFilters();
+        renderAll();
+      } catch (e) {
+        console.error(e);
+        document.getElementById("loading-global").textContent =
+          "Erro ao carregar os dados. Verifique se as abas estão publicadas corretamente em CSV.";
+      }
+    }
+
+    loadAllData();
+  </script>
+</body>
+</html>
