@@ -1464,3 +1464,193 @@
   </script>
 </body>
 </html>
+<script>
+
+function parseNumberBR(s) {
+  if (!s) return 0;
+  let v = s.toString().trim();
+
+  // Remove moeda R$
+  v = v.replace("R$","");
+
+  // Remove espaços
+  v = v.replace(/\s+/g,"");
+
+  // Remove milhar
+  v = v.replace(/\./g,"");
+
+  // Vira ponto decimal
+  v = v.replace(",", ".");
+
+  const n = parseFloat(v);
+  return isNaN(n) ? 0 : n;
+}
+
+function formatCurrencyBRL(v) {
+  return v.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2
+  });
+}
+
+// ========================================
+// CHART 1 – AVANÇO
+// ========================================
+function buildAvancoChart(jornadaData) {
+  const ctx = document.getElementById("chart-avanco").getContext("2d");
+  if (chartAvanco) chartAvanco.destroy();
+
+  const values = jornadaData.map(j => parsePercentString(j.avanco || j.conclusao || ""));
+
+  chartAvanco = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: jornadaData.map(j => j.cliente || j.aluno || ""),
+      datasets: [{
+        data: values,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: { beginAtZero: true, max: 100 }
+      }
+    }
+  });
+}
+
+// ========================================
+// CHART 2 – CHURN
+// ========================================
+function buildChurnChart(jornadaData) {
+  const ctx = document.getElementById("chart-churn").getContext("2d");
+  if (chartChurn) chartChurn.destroy();
+
+  const riskCounts = {};
+  jornadaData.forEach(j => {
+    const label = (j.riscoChurn || "Não informado").trim();
+    riskCounts[label] = (riskCounts[label] || 0) + 1;
+  });
+
+  const labels = Object.keys(riskCounts);
+  const data   = Object.values(riskCounts);
+
+  const colors = labels.map(label => {
+    const l = label.toLowerCase();
+    if (l.includes("alto"))     return "#CC3333";
+    if (l.includes("moderado")) return "#C8A300";
+    if (l.includes("saud"))     return "#2ECC71";
+    if (l.includes("encerr"))   return "#1F73B7";
+    if (l.includes("alert"))    return "#FF7F0E";
+    return "#666666";
+  });
+
+  chartChurn = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { position: "bottom" }
+      },
+      cutout: "55%"
+    }
+  });
+}
+
+// ========================================
+// CHART 3 – PRESTAÇÃO
+// ========================================
+function buildPrestacaoChart(prestacaoData) {
+  const ctx = document.getElementById("chart-prestacao").getContext("2d");
+  if (chartPrestacao) chartPrestacao.destroy();
+
+  const ok = prestacaoData.filter(r => normalizeStr(r.situacao).includes("ok")).length;
+  const pend = prestacaoData.filter(r => !normalizeStr(r.situacao).includes("ok")).length;
+
+  chartPrestacao = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Em dia", "Pendente"],
+      datasets: [{
+        data: [ok, pend],
+        backgroundColor: ["#2ECC71", "#C8A300"]
+      }]
+    },
+    options: { responsive: true }
+  });
+}
+
+// ========================================
+// CHART 4 – BATALHA NAVAL
+// ========================================
+function buildOportunidadesChart(bnavData) {
+  const ctx = document.getElementById("chart-oportunidades").getContext("2d");
+  if (chartOportunidades) chartOportunidades.destroy();
+
+  const values = bnavData.map(r => parseNumberBR(r.valor || r.oportunidade || "0"));
+
+  chartOportunidades = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: bnavData.map(r => r.cliente || ""),
+      datasets: [{
+        data: values,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      }
+    }
+  });
+}
+
+// ========================================
+// LOAD ALL DATA
+// ========================================
+async function loadAll() {
+  const [j, p, e, b, v] = await Promise.all([
+    fetch(URL_JORNADA).then(r => r.text()).then(parseCsv),
+    fetch(URL_PRESTACAO).then(r => r.text()).then(parseCsv),
+    fetch(URL_EXPERIENCE).then(r => r.text()).then(parseCsv),
+    fetch(URL_BATALHA).then(r => r.text()).then(parseCsv),
+    fetch(URL_VENDAS).then(r => r.text()).then(parseCsv)
+  ]);
+
+  allJornada = j;
+  allPrest   = p;
+  allExp     = e;
+  allBnav    = b;
+  allVendas  = v;
+
+  buildAvancoChart(allJornada);
+  buildChurnChart(allJornada);
+  buildPrestacaoChart(allPrest);
+  buildOportunidadesChart(allBnav);
+
+  document.getElementById("loading-global").style.display = "none";
+}
+
+// ========================================
+// START
+// ========================================
+loadAll();
+
+</script>
+</body>
+</html>
