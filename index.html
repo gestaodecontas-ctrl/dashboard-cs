@@ -1,363 +1,658 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
->
 <head>
-<meta charset="UTF-8" />
-<title>CS – Jornada do Aluno</title>
+  <meta charset="UTF-8" />
+  <title>GO Educação – Controle de Sucesso do Cliente</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --cs-navy: #0A1A2F;
+      --cs-blue: #1F73B7;
+      --cs-yellow: #C8A300;
+      --cs-black: #000000;
+      --cs-white: #FFFFFF;
+      --cs-bg: #F5F6FA;
+      --cs-gray: #E3E6ED;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-<style>
-body {
-  font-family: system-ui;
-  margin: 0; padding: 0;
-  background: #F5F6FA;
-}
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--cs-bg);
+      color: var(--cs-black);
+    }
 
-.topbar {
-  background: #0A1A2F;
-  color: white;
-  padding: 12px 24px;
-  font-size: 18px;
-  font-weight: 600;
-  box-shadow: 0 2px 6px rgba(0,0,0,.25);
-}
+    .topbar {
+      background: linear-gradient(135deg, var(--cs-navy), var(--cs-blue));
+      color: var(--cs-white);
+      padding: 18px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
 
-.container {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: 16px;
-  padding: 16px;
-}
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-.card {
-  background: white;
-  border-radius: 10px;
-  padding: 12px 16px;
-  box-shadow: 0 2px 6px rgba(0,0,0,.08);
-}
+    .topbar-title {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
 
-h2 { margin: 0 0 8px; }
+    .topbar-title h1 {
+      margin: 0;
+      font-size: 24px;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
 
-.scroll {
-  max-height: 360px;
-  overflow: auto;
-  border: 1px solid #DDD;
-  border-radius: 10px;
-}
+    .topbar-title span {
+      font-size: 13px;
+      opacity: 0.9;
+    }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
+    .topbar-badge {
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-thead {
-  background: #E3E6ED;
-  font-weight: 600;
-  position: sticky;
-  top: 0;
-}
+    .topbar-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #20c997;
+    }
 
-th, td {
-  padding: 6px 8px;
-  border-bottom: 1px solid #EEE;
-}
-.status-pill {
-  font-size: 10px;
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-.pill-ativo { background: rgba(46,204,113,.15); color: #2ECC71 }
-.pill-churn { background: rgba(204,51,51,.15); color: #CC3333 }
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+    }
 
-</style>
+    .loading {
+      font-size: 13px;
+      color: #555;
+      margin-top: 8px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 10px;
+      color: var(--cs-navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .section-title span.icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      background: var(--cs-yellow);
+      display: inline-block;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi-card {
+      background: var(--cs-white);
+      border-radius: 14px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
+    }
+
+    .kpi-value {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--cs-black);
+    }
+
+    .kpi-extra {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .kpi-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 2px 8px;
+      align-self: flex-start;
+    }
+
+    .tag-ok {
+      background: rgba(31, 199, 116, 0.12);
+      color: #158152;
+    }
+
+    .tag-warning {
+      background: rgba(255, 193, 7, 0.15);
+      color: #947000;
+    }
+
+    .tag-risk {
+      background: rgba(220, 53, 69, 0.14);
+      color: #A32035;
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 14px 0 4px;
+      align-items: flex-end;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 11px;
+    }
+
+    .filter-group label {
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7A8194;
+    }
+
+    .filter-group select {
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid #D0D4E4;
+      font-size: 12px;
+      background: #FFF;
+      min-width: 160px;
+    }
+
+    .layout-two {
+      display: grid;
+      grid-template-columns: 2fr 1.5fr;
+      gap: 18px;
+      margin-top: 12px;
+    }
+
+    .layout-three {
+      display: grid;
+      grid-template-columns: 1.5fr 1.5fr 1.3fr;
+      gap: 18px;
+      margin-top: 16px;
+    }
+
+    .card {
+      background: var(--cs-white);
+      border-radius: 14px;
+      padding: 14px 16px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      border: 1px solid #D8DCE8;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cs-navy);
+    }
+
+    .card-subtitle {
+      font-size: 11px;
+      color: #7A8194;
+    }
+
+    .pill {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: #F4F5FA;
+      color: #555;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+
+    .attention-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    .attention-table th,
+    .attention-table td {
+      padding: 6px 6px;
+      border-bottom: 1px solid #E3E6ED;
+      text-align: left;
+    }
+
+    .attention-table th {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #7A8194;
+    }
+
+    .link-cliente {
+      cursor: pointer;
+      color: var(--cs-blue);
+      text-decoration: underline;
+    }
+
+    .section-enc {
+      margin-top: 8px;
+    }
+
+    @media (max-width: 1024px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .layout-two {
+        grid-template-columns: 1fr;
+      }
+      .layout-three {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal {
+      background: #FFFFFF;
+      border-radius: 16px;
+      max-width: 720px;
+      width: 95%;
+      max-height: 90vh;
+      padding: 16px 18px 18px;
+      box-shadow: 0 30px 30px rgba(0,0,0,0.25);
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      border: none;
+      background: transparent;
+      font-size: 20px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-header {
+      margin-bottom: 10px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 18px;
+      color: var(--cs-navy);
+    }
+
+    .modal-header span {
+      font-size: 12px;
+      color: #7A8194;
+    }
+
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1.4fr 1.2fr;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .modal-block {
+      background: #F7F8FD;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+
+    .modal-block h3 {
+      margin: 0 0 4px;
+      font-size: 13px;
+      color: var(--cs-navy);
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
-
 <body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-title">
+        <h1>GO Educação – Controle de Sucesso do Cliente</h1>
+        <span>Acompanhamento da jornada, prestação de contas, oportunidades e risco de churn.</span>
+      </div>
+      <div class="topbar-badge">
+        <span class="topbar-dot"></span>
+        Dados carregados diretamente do Google Sheets
+      </div>
+    </div>
+  </header>
 
-<div class="topbar">Dashboard CS – Jornada do Aluno</div>
+  <main class="page">
+    <div id="loading-global" class="loading">
+      Carregando dados das abas (Jornada, Prestação de contas, Batalha Naval, Experience, Vendas)...
+    </div>
 
-<div class="container">
+    <!-- KPIs -->
+    <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-label">Alunos ativos</div>
+        <div class="kpi-value" id="kpi-total-alunos">–</div>
+        <div class="kpi-extra" id="kpi-total-alunos-extra"></div>
+        <div class="kpi-tag tag-ok">Base atual da mentoria</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Taxa de sucesso da jornada</div>
+        <div class="kpi-value" id="kpi-taxasucesso">–</div>
+        <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
+        <div class="kpi-tag tag-ok">Conclusão da trilha</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Prestação de contas em dia</div>
+        <div class="kpi-value" id="kpi-prestacao">–</div>
+        <div class="kpi-extra" id="kpi-prestacao-extra"></div>
+        <div class="kpi-tag tag-warning">Envio dos dados financeiros</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Potencial de upsell / renovação</div>
+        <div class="kpi-value" id="kpi-oportunidades">–</div>
+        <div class="kpi-extra" id="kpi-oportunidades-extra"></div>
+        <div class="kpi-tag tag-risk">Mapa de oportunidades comerciais</div>
+      </div>
+    </div>
 
-<!------------------------- FILTROS ------------------------------>
-<div class="card">
-  <h3>Filtros</h3>
+    <!-- Filtros -->
+    <div class="filters-row">
+      <div class="filter-group">
+        <label for="filter-plano">Plano (Jornada)</label>
+        <select id="filter-plano">
+          <option value="__all__">Todos os planos</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-mes">Mês (Experience)</label>
+        <select id="filter-exp-mes">
+          <option value="__all__">Todos os meses</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="filter-exp-encontro">Encontro (Experience)</label>
+        <select id="filter-exp-encontro">
+          <option value="__all__">Todos os encontros</option>
+        </select>
+      </div>
+    </div>
 
-  <label>Status</label>
-  <select id="fltStatus">
-    <option value="">Todos</option>
-  </select>
+    <!-- Gráficos principais -->
+    <div class="layout-two">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Avanço da jornada por aluno</div>
+            <div class="card-subtitle">Percentual de conclusão da trilha de mentoria (filtrado por plano).</div>
+          </div>
+          <span class="pill">Jornada do aluno</span>
+        </div>
+        <canvas id="chart-avanco"></canvas>
+      </div>
 
-  <label>Risco churn</label>
-  <select id="fltRisco">
-    <option value="">Todos</option>
-  </select>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">Saúde da base vs. necessidade de intervenção do CS.</div>
+          </div>
+          <span class="pill">Risco de churn</span>
+        </div>
+        <canvas id="chart-churn"></canvas>
+      </div>
+    </div>
 
-  <button id="btnReset" style="margin-top:8px;">Limpar filtros</button>
+    <!-- Segunda linha -->
+    <div class="layout-three">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">Situação atual do envio de dados financeiros.</div>
+          </div>
+          <span class="pill">Prestação de contas</span>
+        </div>
+        <canvas id="chart-prestacao"></canvas>
+      </div>
 
-  <div id="loading" style="font-size:12px;color:#999;margin-top:6px">
-    Carregando CSV...
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Oportunidades – Batalha Naval</div>
+            <div class="card-subtitle">Valor potencial de novos produtos / renovações por aluno.</div>
+          </div>
+          <span class="pill">Upsell & Renovação</span>
+        </div>
+        <canvas id="chart-oportunidades"></canvas>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Engajamento – Let's GO Experience</div>
+            <div class="card-subtitle">Participação em encontros e confirmação de presença (com filtros).</div>
+          </div>
+          <span class="pill">Experience</span>
+        </div>
+        <div id="experience-summary" style="font-size:12px;color:#444;"></div>
+      </div>
+    </div>
+
+    <!-- Tabela de atenção -->
+    <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenção do CS</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Mapa de risco e oportunidade</div>
+          <div class="card-subtitle">
+            Clique no nome do cliente para abrir a visão individual (modal).
+          </div>
+        </div>
+        <span class="pill">Prioridade de ação</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Avanço</th>
+            <th>Prazo</th>
+            <th>Risco</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="attention-body"></tbody>
+      </table>
+    </div>
+
+    <!-- Encerrados -->
+    <h2 class="section-title section-enc"><span class="icon"></span>Alunos encerrados / finalizados</h2>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Base encerrada da jornada</div>
+          <div class="card-subtitle">
+            Alunos com jornada finalizada (status do plano finalizado / encerrado / concluído). Clique no nome para ver detalhes no modal.
+          </div>
+        </div>
+        <span class="pill">Encerrados</span>
+      </div>
+      <table class="attention-table">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Plano</th>
+            <th>Status do plano</th>
+            <th>Avanço</th>
+            <th>Prestação</th>
+            <th>Oportunidade</th>
+          </tr>
+        </thead>
+        <tbody id="encerrados-body"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal individual -->
+  <div id="aluno-modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div id="modal-content"></div>
+    </div>
   </div>
-</div>
 
-<!------------------------- CONTEÚDO ------------------------------>
-<div style="display:flex;flex-direction:column;gap:16px;">
+  <script>
+    // URLs das abas
+    const URL_JORNADA   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+    const URL_PRESTACAO = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
+    const URL_EXPERIENCE= "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
+    const URL_BATALHA   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+    const URL_VENDAS    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
-<!---- CARDS ---->
-<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
-  <div class="card">
-    <div>Total alunos</div>
-    <h2 id="cardTotal">–</h2>
-  </div>
+    let allJornada = [];
+    let allPrest   = [];
+    let allBnav    = [];
+    let allExp     = [];
+    let allVendas  = [];
 
-  <div class="card">
-    <div>Ativos</div>
-    <h2 id="cardAtivos">–</h2>
-  </div>
+    let currentPlanoFilter      = "__all__";
+    let currentExpMesFilter     = "__all__";
+    let currentExpEncontroFilter= "__all__";
 
-  <div class="card">
-    <div>Churn</div>
-    <h2 id="cardChurn">–</h2>
-  </div>
+    let chartAvanco        = null;
+    let chartChurn         = null;
+    let chartPrestacao     = null;
+    let chartOportunidades = null;
 
-  <div class="card">
-    <div>Risco (Médio + Alto)</div>
-    <h2 id="cardRisco">–</h2>
-  </div>
-</div>
+    // CSV parser inteligente
+    function parseCsv(text) {
+      const rawLines = text
+        .replace(/\r/g, "\n")
+        .split("\n")
+        .filter(l => l.trim() !== "");
 
-<!---- GRÁFICOS ---->
-<div class="card">
-  <h2>Status</h2>
-  <canvas id="chart-status" height="200"></canvas>
-</div>
+      if (!rawLines.length) return [];
 
-<div class="card">
-  <h2>Churn (cores confirmadas)</h2>
-  <canvas id="chart-churn" height="200"></canvas>
-</div>
+      const headerLine = rawLines[0];
 
-<!---- TABELA ---->
-<div class="card">
-  <h2>Detalhamento por aluno</h2>
+      const commaCount     = (headerLine.match(/,/g) || []).length;
+      const semicolonCount = (headerLine.match(/;/g) || []).length;
+      const tabCount       = (headerLine.match(/\t/g) || []).length;
 
-  <div class="scroll">
-    <table>
-      <thead>
-        <tr>
-          <th>Aluno</th>
-          <th>Status</th>
-          <th>Risco churn</th>
-          <th>Oportunidade</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</div>
+      let sep = ",";
+      if (semicolonCount > commaCount && semicolonCount >= tabCount) {
+        sep = ";";
+      } else if (tabCount > commaCount && tabCount > semicolonCount) {
+        sep = "\t";
+      }
 
-</div>
-</div>
+      function splitLine(line) {
+        return line.split(sep).map(part =>
+          part.replace(/^"|"$/g, "").trim()
+        );
+      }
 
-<!--------------------- SCRIPT --------------------->
-<script>
-const CSV_URL =
-  "COLE_AQUI_O_LINK_DO_CSV_PUBLICADO";
+      const headers = splitLine(headerLine);
 
-let raw = [];
-let filtered = [];
-
-let chartStatus = null;
-let chartChurn  = null;
-
-async function loadCSV() {
-  const res = await fetch(CSV_URL);
-  const txt = await res.text();
-
-  const lines = txt.trim().split(/\r?\n/);
-  const header = lines[0].split(",");
-
-  raw = lines.slice(1).map(line => {
-    const c = line.split(",");
-    return {
-      aluno: c[0],
-      status: c[1],
-      riscoChurn: c[2],
-      oportunidade: parseFloat(c[3].replace("R$","").replace(".","").replace(",",".")) || 0
+      return rawLines.slice(1).map(line => {
+        const cols = splitLine(line);
+        const obj = {};
+        headers.forEach((h, i) => {
+          obj[h] = (cols[i] || "").trim();
+        });
+        return obj;
+      });
     }
-  });
 
-  filtered = raw.slice();
-  buildFilters();
-  updateAll();
-  document.getElementById("loading").textContent = "";
-}
-
-function buildFilters() {
-  const st = [...new Set(raw.map(r=>r.status))].sort();
-  const rs = [...new Set(raw.map(r=>r.riscoChurn))].sort();
-
-  const fltStatus = document.getElementById("fltStatus");
-  st.forEach(s=>{
-    const o=document.createElement("option");
-    o.value=s;
-    o.textContent=s;
-    fltStatus.appendChild(o);
-  });
-
-  const fltRisco = document.getElementById("fltRisco");
-  rs.forEach(s=>{
-    const o=document.createElement("option");
-    o.value=s;
-    o.textContent=s;
-    fltRisco.appendChild(o);
-  });
-
-  fltStatus.onchange = applyFilters;
-  fltRisco.onchange  = applyFilters;
-  document.getElementById("btnReset").onclick = ()=>{
-    fltStatus.value="";
-    fltRisco.value="";
-    applyFilters();
-  }
-}
-
-function applyFilters() {
-  const fs = document.getElementById("fltStatus").value;
-  const fr = document.getElementById("fltRisco").value;
-
-  filtered = raw.filter(r=>{
-    if (fs && r.status!==fs) return false;
-    if (fr && r.riscoChurn!==fr) return false;
-    return true;
-  });
-
-  updateAll();
-}
-
-function updateAll() {
-  updateCards();
-  buildStatusChart();
-  buildChurnChart();
-  buildTable();
-}
-
-/************* DASH PARTS ****************/
-
-function updateCards() {
-  const total = filtered.length;
-  const ativos = filtered.filter(r=> !isChurn(r)).length;
-  const churn = filtered.filter(r=> isChurn(r)).length;
-  const risco = filtered.filter(r=> isRisco(r)).length;
-
-  cardTotal.textContent = total;
-  cardAtivos.textContent = ativos;
-  cardChurn.textContent = churn;
-  cardRisco.textContent = risco;
-}
-
-function isChurn(r) {
-  const t = r.status.toLowerCase();
-  return t.includes("churn") || t.includes("encerr");
-}
-
-function isRisco(r) {
-  const t = r.riscoChurn.toLowerCase();
-  return t.includes("alto") || t.includes("moderado");
-}
-
-function buildStatusChart() {
-  const ctx = document.getElementById("chart-status").getContext("2d");
-  if (chartStatus) chartStatus.destroy();
-
-  const counts = {};
-  filtered.forEach(r=>{
-    counts[r.status] = (counts[r.status]||0)+1;
-  });
-
-  chartStatus = new Chart(ctx,{
-    type:"bar",
-    data:{
-      labels:Object.keys(counts),
-      datasets:[{data:Object.values(counts)}]
-    },
-    options:{
-      responsive:true,
-      plugins:{legend:{display:false}}
+    function normalizeStr(s) {
+      if (!s) return "";
+      return s
+        .toString()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
     }
-  });
-}
 
-/************* ESTA É A PARTE QUE VOCÊ PEDIU *************/
-function buildChurnChart() {
-  const ctx = document.getElementById("chart-churn").getContext("2d");
-  if (chartChurn) chartChurn.destroy();
-
-  const riskCounts = {};
-  filtered.forEach(j => {
-    const label = (j.riscoChurn || "Não informado").trim();
-    riskCounts[label] = (riskCounts[label] || 0) + 1;
-  });
-
-  const labels = Object.keys(riskCounts);
-  const data   = Object.values(riskCounts);
-
-  // Mapeamento de cores
-  const colors = labels.map(label => {
-    const l = label.toLowerCase();
-
-    if (l.includes("alto"))     return "#CC3333";  // vermelho
-    if (l.includes("moderado")) return "#C8A300";  // amarelo
-    if (l.includes("saud"))     return "#2ECC71";  // verde
-    if (l.includes("encerr"))   return "#1F73B7";  // azul
-    if (l.includes("alert"))    return "#FF7F0E";  // laranja
-
-    return "#666666"; // fallback
-  });
-
-  chartChurn = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels,
-      datasets: [{
-        data,
-        backgroundColor: colors
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "bottom" }
-      },
-      cutout: "55%"
+    function parsePercentString(s) {
+      if (!s) return 0;
+      let v = s.toString().replace("%", "").trim();
+      v = v.replace(/[^0-9,.-]+/g, "");
+      v = v.replace(/\./g, "").replace(",", ".");
+      const n = parseFloat(v);
+      return isNaN(n) ? 0 : n;
     }
-  });
-}
-/*******************************************************/
 
-function buildTable() {
-  const tb = document.getElementById("tbody");
-  tb.innerHTML = "";
-
-  filtered.forEach(r=>{
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${r.aluno}</td>
-      <td><span class="status-pill ${isChurn(r) ? "pill-churn":"pill-ativo"}">
-        ${r.status}
-      </span></td>
-      <td>${r.riscoChurn}</td>
-      <td>R$ ${r.oportunidade.toFixed(2)}</td>
-    `;
-
-    tb.appendChild(tr);
-  });
-}
-
-loadCSV();
-</script>
-
-</body>
-</html>
+    function parseNumberBR(s)
