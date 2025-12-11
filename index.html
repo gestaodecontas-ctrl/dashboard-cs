@@ -2,406 +2,417 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-
   <title>GO Educação – Dashboard CS</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-  :root {
-    --navy: #0A1A2F;
-    --blue: #1F73B7;
-    --yellow: #C8A300;
-    --green: #2ECC71;
-    --red: #CC3333;
-    --orange: #FF7F0E;
-    --gray-dark: #7A8194;
-    --gray: #D8DCE8;
-    --gray-light: #F5F6FA;
-    --white: #FFFFFF;
+    /* ----------------------------------------------------------
+       VARIÁVEIS / BASE DE DESIGN
+       ---------------------------------------------------------- */
+    :root {
+      --navy: #0A1A2F;
+      --blue: #1F73B7;
+      --yellow: #C8A300;
+      --green: #2ECC71;
+      --red: #CC3333;
+      --orange: #FF7F0E;
+      --gray-dark: #7A8194;
+      --gray: #D8DCE8;
+      --gray-light: #F5F6FA;
+      --white: #FFFFFF;
 
-    --radius: 12px;
-  }
+      --radius: 12px;
+    }
 
-  * {
-    box-sizing: border-box;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont,
-      "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-  }
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
 
-  body {
-    background: var(--gray-light);
-    color: var(--navy);
-    padding: 0;
-    margin: 0;
-  }
+    body {
+      background: var(--gray-light);
+      color: var(--navy);
+      padding: 0;
+      margin: 0;
+    }
 
-  /* HEADER */
-  header.topbar {
-    background: linear-gradient(135deg, var(--navy), var(--blue));
-    padding: 22px 28px;
-    color: var(--white);
-    box-shadow: 0 3px 8px rgba(0,0,0,0.20);
-  }
+    /* ----------------------------------------------------------
+       HEADER / TOPO
+       ---------------------------------------------------------- */
+    header.topbar {
+      background: linear-gradient(135deg, var(--navy), var(--blue));
+      padding: 22px 28px;
+      color: var(--white);
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+    }
 
-  .topbar-inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
 
-  .topbar-title h1 {
-    font-size: 24px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    margin: 0 0 4px;
-  }
+    .topbar-title h1 {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
 
-  .topbar-title span {
-    font-size: 14px;
-    opacity: 0.85;
-  }
+    .topbar-title span {
+      font-size: 14px;
+      opacity: 0.9;
+    }
 
-  .badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: rgba(255,255,255,0.15);
-  }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.14);
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
 
-  .dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #20c997;
-  }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #20c997;
+    }
 
-  /* LAYOUT PRINCIPAL (CONTAINER CENTRALIZADO) */
-  main.container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 32px 24px 40px;
-  }
+    /* ----------------------------------------------------------
+       LAYOUT PRINCIPAL
+       ---------------------------------------------------------- */
+    main.container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 32px 24px 40px;
+    }
 
-  .loading {
-    font-size: 13px;
-    color: var(--gray-dark);
-    margin-bottom: 16px;
-  }
+    .section {
+      margin-top: 24px;
+    }
 
-  .section {
-    margin-top: 16px;
-  }
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .section-title {
-    font-size: 20px;
-    font-weight: 600;
-    margin: 32px 0 16px;
-    color: var(--navy);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+    .section-title .icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      background: var(--yellow);
+      display: inline-block;
+    }
 
-  .section-title .icon {
-    width: 18px;
-    height: 18px;
-    border-radius: 4px;
-    background: var(--yellow);
-    display: inline-block;
-  }
+    .loading {
+      font-size: 13px;
+      color: var(--gray-dark);
+    }
 
-  /* KPI CARDS */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 18px;
-    margin-bottom: 28px;
-  }
+    .mt-20 { margin-top: 20px; }
+    .mt-30 { margin-top: 30px; }
 
-  .kpi-card {
-    background: var(--white);
-    padding: 20px 22px;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray);
-  }
+    /* ----------------------------------------------------------
+       KPI CARDS
+       ---------------------------------------------------------- */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 18px;
+      margin-bottom: 12px;
+    }
 
-  .kpi-label {
-    font-size: 12px;
-    color: var(--gray-dark);
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 6px;
-  }
+    .kpi-card {
+      background: var(--white);
+      padding: 20px 22px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--gray);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-  .kpi-value {
-    font-size: 30px;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 6px;
-  }
+    .kpi-label {
+      font-size: 12px;
+      color: var(--gray-dark);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
 
-  .kpi-extra {
-    font-size: 13px;
-    color: var(--gray-dark);
-  }
+    .kpi-value {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--navy);
+    }
 
-  .kpi-tag {
-    display: inline-block;
-    margin-top: 8px;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 999px;
-  }
+    .kpi-extra {
+      font-size: 13px;
+      color: var(--gray-dark);
+    }
 
-  .tag-ok {
-    background: rgba(46, 204, 113, 0.15);
-    color: var(--green);
-  }
+    .kpi-tag {
+      margin-top: 4px;
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
 
-  .tag-warn {
-    background: rgba(200,163,0,0.18);
-    color: var(--yellow);
-  }
+    .tag-ok {
+      background: rgba(46, 204, 113, 0.14);
+      color: var(--green);
+    }
 
-  .tag-risk {
-    background: rgba(204,51,51,0.18);
-    color: var(--red);
-  }
+    .tag-warn {
+      background: rgba(200, 163, 0, 0.16);
+      color: var(--yellow);
+    }
 
-  /* PILLS GENÉRICAS */
-  .pill {
-    display: inline-block;
-    padding: 4px 10px;
-    font-size: 11px;
-    border-radius: 999px;
-    border: 1px solid var(--gray);
-    background: var(--gray-light);
-    color: var(--navy);
-    margin-left: auto;
-  }
+    .tag-risk {
+      background: rgba(204, 51, 51, 0.16);
+      color: var(--red);
+    }
 
-  /* CARDS */
-  .card {
-    background: var(--white);
-    padding: 22px;
-    border-radius: var(--radius);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    border: 1px solid var(--gray);
-  }
+    /* ----------------------------------------------------------
+       CARDS / GRIDS
+       ---------------------------------------------------------- */
+    .card {
+      background: var(--white);
+      padding: 22px;
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border: 1px solid var(--gray);
+    }
 
-  .card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 16px;
-    gap: 12px;
-  }
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      gap: 12px;
+    }
 
-  .card-title {
-    font-size: 18px;
-    font-weight: 600;
-  }
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+    }
 
-  .card-subtitle {
-    font-size: 13px;
-    color: var(--gray-dark);
-    margin-top: 2px;
-  }
+    .card-subtitle {
+      font-size: 13px;
+      color: var(--gray-dark);
+      margin-top: 2px;
+    }
 
-  /* GRIDS DE GRÁFICO */
-  .charts-2col {
-    display: grid;
-    grid-template-columns: 1.7fr 1.3fr;
-    gap: 22px;
-    margin-top: 12px;
-  }
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+      border: 1px solid var(--gray);
+      background: var(--gray-light);
+      color: var(--navy);
+    }
 
-  .charts-3col {
-    display: grid;
-    grid-template-columns: 1.2fr 1.2fr 1fr;
-    gap: 22px;
-    margin-top: 22px;
-  }
+    .charts-2col {
+      display: grid;
+      grid-template-columns: 1.6fr 1.2fr;
+      gap: 22px;
+    }
 
-  @media (max-width: 900px) {
-    .charts-2col,
     .charts-3col {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: 1.2fr 1.2fr 1fr;
+      gap: 22px;
     }
-  }
 
-  /* TABELAS */
-  table.table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 8px;
-    font-size: 13px;
-  }
+    @media (max-width: 900px) {
+      .charts-2col,
+      .charts-3col {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  .table th {
-    text-align: left;
-    padding: 8px 6px;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    color: var(--gray-dark);
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--gray);
-  }
+    /* ----------------------------------------------------------
+       FILTROS
+       ---------------------------------------------------------- */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
 
-  .table td {
-    padding: 8px 6px;
-    border-bottom: 1px solid #e7e9ef;
-  }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
 
-  .link {
-    cursor: pointer;
-    color: var(--blue);
-    text-decoration: underline;
-    font-weight: 500;
-  }
+    .filter-group label {
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--gray-dark);
+    }
 
-  /* MODAL */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.45);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-  }
+    .filter-group select {
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--gray);
+      background: var(--white);
+      font-size: 13px;
+    }
 
-  .modal-overlay.show {
-    display: flex;
-  }
+    /* ----------------------------------------------------------
+       TABELAS
+       ---------------------------------------------------------- */
+    table.table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 13px;
+    }
 
-  .modal {
-    background: var(--white);
-    padding: 26px;
-    border-radius: var(--radius);
-    width: 92%;
-    max-width: 720px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
-    box-shadow: 0 3px 20px rgba(0,0,0,0.25);
-  }
+    .table th {
+      text-align: left;
+      padding: 8px 6px;
+      font-size: 11px;
+      letter-spacing: 0.05em;
+      color: var(--gray-dark);
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--gray);
+    }
 
-  .modal-close {
-    position: absolute;
-    right: 14px;
-    top: 10px;
-    cursor: pointer;
-    font-size: 22px;
-    color: var(--gray-dark);
-    border: none;
-    background: transparent;
-  }
+    .table td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #e7e9ef;
+    }
 
-  .modal-header {
-    margin-bottom: 10px;
-  }
+    .link-aluno {
+      cursor: pointer;
+      color: var(--blue);
+      text-decoration: underline;
+      font-weight: 500;
+    }
 
-  .modal-header h2 {
-    font-size: 20px;
-    margin-bottom: 4px;
-  }
+    /* ----------------------------------------------------------
+       EXPERIENCE SUMMARY
+       ---------------------------------------------------------- */
+    #experience-summary {
+      font-size: 13px;
+      color: var(--gray-dark);
+      line-height: 1.45;
+    }
 
-  .modal-header span {
-    font-size: 13px;
-    color: var(--gray-dark);
-  }
+    .exp-line {
+      margin-bottom: 4px;
+    }
 
-  .modal-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-top: 16px;
-  }
+    /* ----------------------------------------------------------
+       MODAL
+       ---------------------------------------------------------- */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
 
-  @media (max-width: 650px) {
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--white);
+      padding: 26px;
+      border-radius: var(--radius);
+      width: 92%;
+      max-width: 720px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 3px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-close {
+      position: absolute;
+      right: 14px;
+      top: 10px;
+      cursor: pointer;
+      font-size: 22px;
+      color: var(--gray-dark);
+      border: none;
+      background: transparent;
+    }
+
+    .modal-header {
+      margin-bottom: 12px;
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .modal-header span {
+      font-size: 13px;
+      color: var(--gray-dark);
+    }
+
     .modal-grid {
-      grid-template-columns: 1fr;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
     }
-  }
 
-  .modal-block {
-    background: var(--gray-light);
-    padding: 14px;
-    border-radius: var(--radius);
-    font-size: 13px;
-  }
+    @media (max-width: 650px) {
+      .modal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
 
-  .modal-block h3 {
-    font-size: 15px;
-    margin-bottom: 6px;
-    color: var(--navy);
-  }
+    .modal-block {
+      background: var(--gray-light);
+      padding: 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
 
-  /* FILTROS */
-  .filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 12px;
-    margin-top: 12px;
-  }
+    .modal-block h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+      color: var(--navy);
+    }
 
-  .filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
+    .hidden {
+      display: none !important;
+    }
 
-  .filter-group label {
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--gray-dark);
-  }
-
-  .filter-group select {
-    padding: 6px 10px;
-    border-radius: 8px;
-    border: 1px solid var(--gray);
-    background: var(--white);
-    font-size: 13px;
-  }
-
-  /* EXPERIENCE SUMMARY */
-  #experience-summary {
-    font-size: 13px;
-    line-height: 1.45;
-    margin-top: 6px;
-    color: var(--gray-dark);
-  }
-
-  .exp-line {
-    margin-bottom: 4px;
-  }
-
-  /* CHART CANVAS */
-  canvas {
-    width: 100% !important;
-    max-height: 360px;
-  }
-
-  .mt-20 { margin-top: 20px; }
-  .mt-30 { margin-top: 30px; }
+    canvas {
+      width: 100% !important;
+      max-height: 360px;
+    }
   </style>
 </head>
 <body>
@@ -411,7 +422,6 @@
       <h1>GO Educação – Controle de Sucesso</h1>
       <span>Acompanhamento da jornada, prestação de contas e saúde da base</span>
     </div>
-
     <div class="badge">
       <span class="dot"></span>
       Dados carregados do Google Sheets
@@ -420,52 +430,45 @@
 </header>
 
 <main class="container">
-
   <div id="loading" class="loading">
-    Carregando dados das 6 abas (Regras, Jornada, Prestação de Contas, Experience, Batalha Naval e Vendas)…
+    Carregando dados das 6 abas (Regras/Planos, Jornada, Prestação de Contas,
+    Experience, Batalha Naval e Vendas)…
   </div>
 
-  <!-- KPIs PRINCIPAIS -->
+  <!-- KPIs -->
   <section class="section mt-20">
-    <h2 class="section-title"><span class="icon"></span>Visão Geral</h2>
-
+    <h2 class="section-title"><span class="icon"></span>Visão geral</h2>
     <div class="kpi-grid">
-
       <div class="kpi-card">
         <div class="kpi-label">Alunos ativos</div>
         <div class="kpi-value" id="kpi-alunos-ativos">–</div>
         <div class="kpi-extra" id="kpi-alunos-ativos-extra"></div>
         <div class="kpi-tag tag-ok">Base atual da mentoria</div>
       </div>
-
       <div class="kpi-card">
         <div class="kpi-label">Taxa de sucesso da jornada</div>
         <div class="kpi-value" id="kpi-taxasucesso">–</div>
         <div class="kpi-extra" id="kpi-taxasucesso-extra"></div>
         <div class="kpi-tag tag-ok">Conclusão média da trilha</div>
       </div>
-
       <div class="kpi-card">
         <div class="kpi-label">Prestação de contas em dia</div>
         <div class="kpi-value" id="kpi-prestacao">–</div>
         <div class="kpi-extra" id="kpi-prestacao-extra"></div>
         <div class="kpi-tag tag-warn">Financeiro atualizado</div>
       </div>
-
       <div class="kpi-card">
-        <div class="kpi-label">Potencial de Upsell</div>
+        <div class="kpi-label">Potencial de upsell</div>
         <div class="kpi-value" id="kpi-upsell">–</div>
         <div class="kpi-extra" id="kpi-upsell-extra"></div>
         <div class="kpi-tag tag-risk">Oportunidades comerciais</div>
       </div>
-
     </div>
   </section>
 
-  <!-- FILTROS -->
+  <!-- Filtros básicos (opcional para futuro) -->
   <section class="section mt-30">
-    <h2 class="section-title"><span class="icon"></span>Filtros</h2>
-
+    <h2 class="section-title"><span class="icon"></span>Filtros (visão geral)</h2>
     <div class="filters">
       <div class="filter-group">
         <label for="filtro-plano">Plano</label>
@@ -473,14 +476,12 @@
           <option value="__all__">Todos os planos</option>
         </select>
       </div>
-
       <div class="filter-group">
         <label for="filtro-mes">Mês (Experience)</label>
         <select id="filtro-mes">
           <option value="__all__">Todos os meses</option>
         </select>
       </div>
-
       <div class="filter-group">
         <label for="filtro-encontro">Encontro</label>
         <select id="filtro-encontro">
@@ -490,100 +491,94 @@
     </div>
   </section>
 
-  <!-- GRÁFICOS PRINCIPAIS -->
+  <!-- Gráficos principais -->
   <section class="section mt-30">
     <div class="charts-2col">
-
-      <!-- Avanço da jornada -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Avanço da Jornada</div>
-            <div class="card-subtitle">Percentual de conclusão por aluno (ordenado do maior para o menor).</div>
+            <div class="card-title">Avanço da jornada</div>
+            <div class="card-subtitle">
+              Percentual de conclusão por aluno (foco nos ativos).
+            </div>
           </div>
           <span class="pill">Jornada</span>
         </div>
-
         <canvas id="chart-avanco"></canvas>
       </div>
 
-      <!-- Risco de Churn -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Risco de Churn</div>
-            <div class="card-subtitle">Distribuição da saúde da base.</div>
+            <div class="card-title">Distribuição de risco de churn</div>
+            <div class="card-subtitle">
+              Classificação da saúde da base por risco.
+            </div>
           </div>
           <span class="pill">Churn</span>
         </div>
-
         <canvas id="chart-churn"></canvas>
       </div>
-
     </div>
   </section>
 
-  <!-- SEGUNDA LINHA DE GRÁFICOS -->
+  <!-- Segunda linha de gráficos -->
   <section class="section mt-30">
     <div class="charts-3col">
-
-      <!-- Prestação de contas -->
       <div class="card">
         <div class="card-header">
           <div>
-            <div class="card-title">Prestação de Contas</div>
-            <div class="card-subtitle">Status de envio por aluno.</div>
+            <div class="card-title">Prestação de contas</div>
+            <div class="card-subtitle">
+              Status de envio por aluno (OK x pendente).
+            </div>
           </div>
           <span class="pill">Financeiro</span>
         </div>
-
         <canvas id="chart-prestacao"></canvas>
       </div>
 
-      <!-- Batalha Naval / Upsell -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Batalha Naval</div>
-            <div class="card-subtitle">Potencial comercial real (apenas “Potencial (R$)” da aba Batalha Naval).</div>
+            <div class="card-subtitle">
+              Potencial comercial usando <strong>Oportunidade total por aluno</strong>.
+            </div>
           </div>
           <span class="pill">Upsell</span>
         </div>
-
         <canvas id="chart-upsell"></canvas>
       </div>
 
-      <!-- Experience resumo -->
       <div class="card">
         <div class="card-header">
           <div>
             <div class="card-title">Let's GO Experience</div>
-            <div class="card-subtitle">Engajamento total e filtrado por mês/encontro.</div>
+            <div class="card-subtitle">
+              Engajamento geral (presença nos encontros).
+            </div>
           </div>
           <span class="pill">Experience</span>
         </div>
-
         <div id="experience-summary"></div>
       </div>
-
     </div>
   </section>
 
-  <!-- TABELA – ALUNOS QUE PRECISAM ATENÇÃO -->
+  <!-- Alunos que precisam de atenção -->
   <section class="section mt-30">
     <h2 class="section-title"><span class="icon"></span>Alunos que precisam de atenção</h2>
-
     <div class="card">
       <div class="card-header">
         <div>
-          <div class="card-title">Prioridade de Ação</div>
+          <div class="card-title">Prioridade de ação</div>
           <div class="card-subtitle">
-            Clique no nome para abrir o modal com informações completas.
+            Clique no nome para abrir o modal com visão individual.
           </div>
         </div>
         <span class="pill">CS</span>
       </div>
-
       <table class="table">
         <thead>
           <tr>
@@ -596,16 +591,14 @@
             <th>Upsell</th>
           </tr>
         </thead>
-
         <tbody id="table-atencao"></tbody>
       </table>
     </div>
   </section>
 
-  <!-- TABELA – ALUNOS ENCERRADOS -->
+  <!-- Alunos encerrados -->
   <section class="section mt-30">
-    <h2 class="section-title"><span class="icon"></span>Alunos Encerrados</h2>
-
+    <h2 class="section-title"><span class="icon"></span>Alunos encerrados</h2>
     <div class="card">
       <div class="card-header">
         <div>
@@ -616,7 +609,6 @@
         </div>
         <span class="pill">Encerrados</span>
       </div>
-
       <table class="table">
         <thead>
           <tr>
@@ -628,15 +620,13 @@
             <th>Upsell</th>
           </tr>
         </thead>
-
         <tbody id="table-encerrados"></tbody>
       </table>
     </div>
   </section>
-
 </main>
 
-<!-- MODAL DO ALUNO -->
+<!-- Modal -->
 <div id="modal-overlay" class="modal-overlay">
   <div class="modal">
     <button class="modal-close" id="modal-close">&times;</button>
@@ -645,717 +635,713 @@
 </div>
 
 <script>
-/* URLs DAS 6 ABAS (EXATAMENTE COMO VOCÊ MANDOU) */
-const URL_REGRAS     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=994652615&single=true&output=csv";
-const URL_JORNADA    = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
-const URL_PRESTACAO  = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
-const URL_EXPERIENCE = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
-const URL_BNAV       = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
-const URL_VENDAS     = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
+  /* ============================================================
+     URLs das 6 abas CSV (copiadas exatamente como você enviou)
+     ============================================================ */
+  const URL_REGRAS =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=994652615&single=true&output=csv";
+  const URL_JORNADA =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=3760243&single=true&output=csv";
+  const URL_PRESTACAO =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=997833295&single=true&output=csv";
+  const URL_EXPERIENCE =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=0&single=true&output=csv";
+  const URL_BNAV =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=569915638&single=true&output=csv";
+  const URL_VENDAS =
+    "https://docs.google.com/spreadsheets/d/e/2PACX-1vTjsb8vTeRq4sfWIccUpEwy55opckva5oZwJZqQ_XnUYKQJDHgmnL9buW_gZFAIZgoIeMN49t6l0pul/pub?gid=1865445107&single=true&output=csv";
 
-/* UTILITÁRIOS */
-function normalize(s) {
-  if (!s) return "";
-  return s
-    .toString()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .trim()
-    .toLowerCase();
-}
-
-function parseNumberBR(v) {
-  if (!v) return 0;
-  v = v.toString();
-  v = v.replace(/\s/g, "");
-  v = v.replace(/\./g, "").replace(",", ".");
-  const n = parseFloat(v);
-  return isNaN(n) ? 0 : n;
-}
-
-function parsePercent(v) {
-  if (!v) return 0;
-  v = v.toString().replace("%", "").trim();
-  return parseNumberBR(v);
-}
-
-/* CSV PARSER SIMPLES */
-function parseCSV(text) {
-  const lines = text.replace(/\r/g, "\n").split("\n").filter(l => l.trim() !== "");
-  if (lines.length === 0) return [];
-
-  const header = lines[0];
-
-  const semis = (header.match(/;/g) || []).length;
-  const commas = (header.match(/,/g) || []).length;
-  const sep = semis > commas ? ";" : ",";
-
-  const cols = header.split(sep).map(h => h.trim());
-  const out = [];
-
-  for (let i = 1; i < lines.length; i++) {
-    const parts = lines[i].split(sep);
-    const row = {};
-    cols.forEach((c, idx) => (row[c] = (parts[idx] || "").trim()));
-    out.push(row);
+  /* ============================================================
+     Utilitários
+     ============================================================ */
+  function normalize(str) {
+    if (!str) return "";
+    return str
+      .toString()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .toLowerCase();
   }
 
-  return out;
-}
+  function parseNumberBR(v) {
+    if (!v) return 0;
+    v = v.toString().replace(/\s/g, "").replace(/\./g, "").replace(",", ".");
+    const n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
 
-/* CARREGAMENTO DAS 6 ABAS */
-async function loadAllCS() {
-  const loading = document.getElementById("loading");
-  loading.innerHTML = "Baixando dados…";
+  function parsePercent(v) {
+    if (!v) return 0;
+    v = v.toString().replace("%", "").trim();
+    return parseNumberBR(v);
+  }
 
-  const [REGRAS, JORNADA, PREST, EXP, BNAV, VEND] = await Promise.all([
-    fetch(URL_REGRAS).then(r => r.text()),
-    fetch(URL_JORNADA).then(r => r.text()),
-    fetch(URL_PRESTACAO).then(r => r.text()),
-    fetch(URL_EXPERIENCE).then(r => r.text()),
-    fetch(URL_BNAV).then(r => r.text()),
-    fetch(URL_VENDAS).then(r => r.text())
-  ]);
+  function parseCSV(text) {
+    const lines = text.replace(/\r/g, "\n").split("\n").filter(l => l.trim() !== "");
+    if (lines.length === 0) return [];
+    const header = lines[0];
+    const sep = (header.match(/;/g) || []).length > (header.match(/,/g) || []).length ? ";" : ",";
+    const cols = header.split(sep).map(h => h.trim());
+    const out = [];
+    for (let i = 1; i < lines.length; i++) {
+      const parts = lines[i].split(sep);
+      const row = {};
+      cols.forEach((c, idx) => (row[c] = (parts[idx] || "").trim()));
+      out.push(row);
+    }
+    return out;
+  }
 
-  loading.innerHTML = "Convertendo CSV…";
+  /* Helper para descobrir qual coluna usar pelo nome aproximado */
+  function findKeyByPatterns(row, patterns) {
+    const keys = Object.keys(row || {});
+    for (const key of keys) {
+      const nk = normalize(key);
+      for (const p of patterns) {
+        if (nk.includes(p)) return key;
+      }
+    }
+    return null;
+  }
 
-  const regras     = parseCSV(REGRAS);
-  const jornada    = parseCSV(JORNADA);
-  const prest      = parseCSV(PREST);
-  const experience = parseCSV(EXP);
-  const bnav       = parseCSV(BNAV);
-  const vendas     = parseCSV(VEND);
+  /* ============================================================
+     Carregamento das 6 abas
+     ============================================================ */
+  async function loadAllCS() {
+    const loading = document.getElementById("loading");
+    try {
+      loading.textContent = "Baixando dados…";
 
-  loading.innerHTML = "Normalizando dados…";
+      const [REGRAS, JORNADA, PREST, EXP, BNAV, VEND] = await Promise.all([
+        fetch(URL_REGRAS).then(r => r.text()),
+        fetch(URL_JORNADA).then(r => r.text()),
+        fetch(URL_PRESTACAO).then(r => r.text()),
+        fetch(URL_EXPERIENCE).then(r => r.text()),
+        fetch(URL_BNAV).then(r => r.text()),
+        fetch(URL_VENDAS).then(r => r.text())
+      ]);
 
-  const base = normalizeAll({ regras, jornada, prest, experience, bnav, vendas });
+      loading.textContent = "Convertendo CSV…";
 
-  loading.innerHTML = "Gerando gráficos e tabelas…";
+      const regras = parseCSV(REGRAS);
+      const jornada = parseCSV(JORNADA);
+      const prest = parseCSV(PREST);
+      const experience = parseCSV(EXP);
+      const bnav = parseCSV(BNAV);
+      const vendas = parseCSV(VEND);
 
-  renderAll(base);
+      loading.textContent = "Normalizando e consolidando base…";
+      const base = normalizeAll({ regras, jornada, prest, experience, bnav, vendas });
 
-  loading.style.display = "none";
-}
+      loading.textContent = "Gerando gráficos e tabelas…";
+      renderAll(base);
 
-/* NORMALIZAÇÃO PRINCIPAL */
-function normalizeAll({ regras, jornada, prest, experience, bnav, vendas }) {
-  /* Regras / Planos */
-  const regrasMap = {};
-  regras.forEach(r => {
-    const planoRaw = r["Plano"] || "";
-    const plano = normalize(planoRaw);
-    if (!plano) return;
-    regrasMap[plano] = {
-      planoOriginal: planoRaw,
-      prazo: r["Prazo (dias)"] ? parseInt(r["Prazo (dias)"]) : 0,
-      valor: parseNumberBR(r["Valor"]),
-      descricao: r["Descrição"] || ""
-    };
-  });
+      loading.classList.add("hidden");
+    } catch (e) {
+      console.error(e);
+      loading.textContent = "Erro ao carregar dados. Verifique os links dos CSVs.";
+    }
+  }
 
-  /* Jornada do aluno */
-  const jornadaMap = {};
-  jornada.forEach(j => {
-    const nomeBruto = j["Aluno"] || j["Cliente"] || "";
-    const nomeNorm = normalize(nomeBruto);
-    if (!nomeNorm) return;
+  /* ============================================================
+     Normalização principal (regra, jornada, prestação etc.)
+     ============================================================ */
+  function normalizeAll({ regras, jornada, prest, experience, bnav, vendas }) {
+    /* Regras / planos */
+    const regrasMap = {};
+    const rSample = regras[0] || {};
+    const rPlanoKey = findKeyByPatterns(rSample, ["plano"]);
+    const rPrazoKey = findKeyByPatterns(rSample, ["prazo"]);
+    const rValorKey = findKeyByPatterns(rSample, ["valor"]);
 
-    const planoBruto = j["Plano"] || "";
-    const planoNorm = normalize(planoBruto);
-
-    const percConclusao = parsePercent(j["Conclusão (%)"]);
-    const percAvanco    = parsePercent(j["Avanço (%)"]);
-    const progresso     = percConclusao || percAvanco;
-
-    jornadaMap[nomeNorm] = {
-      aluno: nomeBruto,
-      plano: planoBruto,
-      planoNorm,
-      status: j["Status do plano"] || j["Status"] || "",
-      risco: j["Risco de churn"] || j["Risco"] || "",
-      prazo: j["Prazo"] || j["Prazo (dias)"] || "",
-      progresso,
-      dataInicio: j["Data início"] || j["Data início "] || "",
-      dataFim: j["Data fim"] || j["Data fim "] || ""
-    };
-  });
-
-  /* Prestação de contas */
-  const prestMap = {};
-  prest.forEach(p => {
-    const nomeBruto = p["Aluno"] || p["Cliente"] || "";
-    const nomeNorm = normalize(nomeBruto);
-    if (!nomeNorm) return;
-
-    const status = p["Status"] || "";
-    const statusNorm = normalize(status);
-
-    prestMap[nomeNorm] = {
-      status,
-      atualizado: statusNorm.includes("ok") || statusNorm.includes("em dia") ? 1 : 0
-    };
-  });
-
-  /* Experience */
-  const expMap = {};
-  experience.forEach(e => {
-    const nomeBruto = e["Aluno"] || e["Cliente"] || "";
-    const nomeNorm = normalize(nomeBruto);
-    if (!nomeNorm) return;
-
-    if (!expMap[nomeNorm]) expMap[nomeNorm] = [];
-
-    const presencaRaw = e["Presença"] || e["Presenca"] || e["Status presença"] || "";
-    const presencaNorm = normalize(presencaRaw);
-
-    expMap[nomeNorm].push({
-      mes: e["Mês"] || e["Mes"] || "",
-      encontro: e["Encontro"] || "",
-      presenca: presencaNorm.includes("sim") || presencaNorm.includes("presente") ? 1 : 0
+    regras.forEach(r => {
+      const planoNome = r[rPlanoKey] || "";
+      const planoNorm = normalize(planoNome);
+      if (!planoNorm) return;
+      regrasMap[planoNorm] = {
+        planoOriginal: planoNome,
+        prazo: rPrazoKey ? parseInt(r[rPrazoKey] || "0") || 0 : 0,
+        valor: rValorKey ? parseNumberBR(r[rValorKey]) : 0,
+        descricao: r["Descrição"] || r["Descricao"] || ""
+      };
     });
-  });
 
-  /* Batalha Naval */
-  const bnMap = {};
-  bnav.forEach(b => {
-    const nomeBruto = b["Aluno"] || b["Cliente"] || "";
-    const nomeNorm = normalize(nomeBruto);
-    if (!nomeNorm) return;
+    /* Jornada */
+    const jSample = jornada[0] || {};
+    const jAlunoKey = findKeyByPatterns(jSample, ["aluno", "cliente", "nome"]);
+    const jPlanoKey = findKeyByPatterns(jSample, ["plano"]);
+    const jStatusKey = findKeyByPatterns(jSample, ["status do plano", "status"]);
+    const jRiscoKey = findKeyByPatterns(jSample, ["risco"]);
+    const jPrazoKey = findKeyByPatterns(jSample, ["prazo"]);
+    const jAvancoKey = findKeyByPatterns(jSample, ["avanco", "avanço"]);
+    const jConclusaoKey = findKeyByPatterns(jSample, ["conclusao", "conclusão"]);
+    const jDataIniKey = findKeyByPatterns(jSample, ["data inicio", "data de inicio", "início"]);
+    const jDataFimKey = findKeyByPatterns(jSample, ["data fim", "data final"]);
 
-    bnMap[nomeNorm] = {
-      potencial: parseNumberBR(b["Potencial (R$)"]),
-      status: b["Status"] || "",
-      observacao: b["Observação"] || b["Observacao"] || ""
-    };
-  });
+    const jornadaMap = {};
+    jornada.forEach(j => {
+      const nomeAluno = jAlunoKey ? j[jAlunoKey] : "";
+      const nomeNorm = normalize(nomeAluno);
+      if (!nomeNorm) return;
 
-  /* Vendas / Renovações */
-  const vendMap = {};
-  vendas.forEach(v => {
-    const nomeBruto = v["Aluno"] || v["Cliente"] || "";
-    const nomeNorm = normalize(nomeBruto);
-    if (!nomeNorm) return;
+      const planoNome = jPlanoKey ? j[jPlanoKey] : "";
+      const planoNorm = normalize(planoNome);
 
-    vendMap[nomeNorm] = {
-      ultimaCompra: v["Data"] || "",
-      produto: v["Produto"] || "",
-      valor: parseNumberBR(v["Valor"])
-    };
-  });
+      const conclusaoStr = jConclusaoKey ? j[jConclusaoKey] : "";
+      const avancoStr = jAvancoKey ? j[jAvancoKey] : "";
 
-  /* BASE FINAL */
-  const alunos = Object.keys(jornadaMap);
+      const conclusao = conclusaoStr
+        ? parsePercent(conclusaoStr)
+        : parsePercent(avancoStr);
 
-  const baseFinal = alunos.map(n => {
-    const j = jornadaMap[n];
-    const p = prestMap[n] || {};
-    const ex = expMap[n] || [];
-    const bn = bnMap[n] || {};
-    const vd = vendMap[n] || {};
-    const rg = regrasMap[j.planoNorm] || {};
-
-    return {
-      nomeOriginal: j.aluno,
-      nomeNorm: n,
-
-      plano: j.plano,
-      planoNorm: j.planoNorm,
-      status: j.status,
-      risco: j.risco,
-      prazo: j.prazo,
-      progresso: j.progresso || 0,
-      dataInicio: j.dataInicio,
-      dataFim: j.dataFim,
-
-      prazoRegra: rg.prazo || 0,
-      valorRegra: rg.valor || 0,
-
-      prestStatus: p.status || "",
-      prestAtualizado: p.atualizado || 0,
-
-      experience: ex,
-
-      potencial: bn.potencial || 0,
-      bnStatus: bn.status || "",
-      bnObs: bn.observacao || "",
-
-      ultimaCompra: vd.ultimaCompra || "",
-      produto: vd.produto || "",
-      valorCompra: vd.valor || 0
-    };
-  });
-
-  return baseFinal;
-}
-
-/* RENDERIZAÇÃO GERAL */
-let CS_BASE = [];
-let chartAvanco = null;
-let chartChurn = null;
-let chartPrest = null;
-let chartUpsell = null;
-
-function renderAll(base) {
-  CS_BASE = base;
-
-  popularFiltros(base);
-  buildKPIs(base);
-  buildExperienceSummary(base);
-  buildChartAvanco(base);
-  buildChartChurn(base);
-  buildChartPrestacao(base);
-  buildChartUpsell(base);
-  buildTables(base);
-  setupModal();
-
-  // listeners dos filtros
-  document.getElementById("filtro-plano").addEventListener("change", () => aplicarFiltros());
-  document.getElementById("filtro-mes").addEventListener("change", () => aplicarFiltros());
-  document.getElementById("filtro-encontro").addEventListener("change", () => aplicarFiltros());
-}
-
-/* FILTROS – POPULAR COM BASE NOS DADOS */
-function popularFiltros(base) {
-  const selPlano = document.getElementById("filtro-plano");
-  const selMes   = document.getElementById("filtro-mes");
-  const selEn    = document.getElementById("filtro-encontro");
-
-  const planos = new Set();
-  const meses  = new Set();
-  const encs   = new Set();
-
-  base.forEach(a => {
-    if (a.plano) planos.add(a.plano);
-    (a.experience || []).forEach(e => {
-      if (e.mes) meses.add(e.mes);
-      if (e.encontro) encs.add(e.encontro);
+      jornadaMap[nomeNorm] = {
+        aluno: nomeAluno || "",
+        plano: planoNome || "",
+        planoNorm,
+        status: jStatusKey ? j[jStatusKey] || "" : "",
+        risco: jRiscoKey ? j[jRiscoKey] || "" : "",
+        prazo: jPrazoKey ? j[jPrazoKey] || "" : "",
+        avanc: parsePercent(avancoStr),
+        conclusao,
+        dataInicio: jDataIniKey ? j[jDataIniKey] || "" : "",
+        dataFim: jDataFimKey ? j[jDataFimKey] || "" : ""
+      };
     });
-  });
 
-  [...planos].sort().forEach(p => {
-    const opt = document.createElement("option");
-    opt.value = p;
-    opt.textContent = p;
-    selPlano.appendChild(opt);
-  });
+    /* Prestação de contas */
+    const pSample = prest[0] || {};
+    const pAlunoKey = findKeyByPatterns(pSample, ["aluno", "cliente", "nome"]);
+    const pStatusKey = findKeyByPatterns(pSample, ["status"]);
 
-  [...meses].sort().forEach(m => {
-    const opt = document.createElement("option");
-    opt.value = m;
-    opt.textContent = m;
-    selMes.appendChild(opt);
-  });
-
-  [...encs].sort().forEach(e => {
-    const opt = document.createElement("option");
-    opt.value = e;
-    opt.textContent = e;
-    selEn.appendChild(opt);
-  });
-}
-
-/* APLICAÇÃO DOS FILTROS NA BASE */
-function getBaseFiltrada() {
-  const planoSel = document.getElementById("filtro-plano").value;
-  const mesSel   = document.getElementById("filtro-mes").value;
-  const encSel   = document.getElementById("filtro-encontro").value;
-
-  let base = [...CS_BASE];
-
-  if (planoSel !== "__all__") {
-    base = base.filter(a => a.plano === planoSel);
-  }
-
-  // filtros de Experience são usados principalmente no resumo,
-  // mas vamos manter a base geral para gráficos/tabelas
-  return { base, planoSel, mesSel, encSel };
-}
-
-function aplicarFiltros() {
-  const { base, mesSel, encSel } = getBaseFiltrada();
-
-  buildKPIs(base);
-  buildChartAvanco(base);
-  buildChartChurn(base);
-  buildChartPrestacao(base);
-  buildChartUpsell(base);
-  buildTables(base);
-  buildExperienceSummary(base, mesSel, encSel);
-}
-
-/* KPIs */
-function buildKPIs(base) {
-  if (!base.length) return;
-
-  const ativos = base.filter(a => !normalize(a.status).includes("encerr")).length;
-  const encerrados = base.length - ativos;
-
-  document.getElementById("kpi-alunos-ativos").textContent = ativos;
-  document.getElementById("kpi-alunos-ativos-extra").textContent =
-    encerrados + " encerrados";
-
-  const mediaConclusao =
-    base.reduce((sum, a) => sum + (a.progresso || 0), 0) / base.length;
-
-  document.getElementById("kpi-taxasucesso").textContent =
-    mediaConclusao.toFixed(1) + "%";
-  document.getElementById("kpi-taxasucesso-extra").textContent =
-    "Média geral da trilha";
-
-  const prestOK = base.filter(a => a.prestAtualizado === 1).length;
-  const prestPerc = (prestOK / base.length) * 100;
-
-  document.getElementById("kpi-prestacao").textContent =
-    prestPerc.toFixed(1) + "%";
-  document.getElementById("kpi-prestacao-extra").textContent =
-    prestOK + " de " + base.length + " atualizaram";
-
-  const totalUpsell = base.reduce((sum, a) => sum + (a.potencial || 0), 0);
-
-  document.getElementById("kpi-upsell").textContent =
-    "R$ " + totalUpsell.toLocaleString("pt-BR");
-  document.getElementById("kpi-upsell-extra").textContent =
-    "Potencial total só da aba Batalha Naval";
-}
-
-/* EXPERIENCE SUMMARY (considera filtros de mês e encontro) */
-function buildExperienceSummary(base, mesSel, encSel) {
-  const container = document.getElementById("experience-summary");
-  if (!base.length) {
-    container.textContent = "Sem dados de Experience.";
-    return;
-  }
-
-  const mesFiltro = mesSel || document.getElementById("filtro-mes").value;
-  const encFiltro = encSel || document.getElementById("filtro-encontro").value;
-
-  let totalRegistros = 0;
-  let totalPresenca  = 0;
-
-  base.forEach(a => {
-    (a.experience || []).forEach(e => {
-      if (mesFiltro !== "__all__" && e.mes !== mesFiltro) return;
-      if (encFiltro !== "__all__" && e.encontro !== encFiltro) return;
-      totalRegistros++;
-      if (e.presenca === 1) totalPresenca++;
+    const prestMap = {};
+    prest.forEach(p => {
+      const nome = pAlunoKey ? p[pAlunoKey] : "";
+      const nomeNorm = normalize(nome);
+      if (!nomeNorm) return;
+      const status = pStatusKey ? p[pStatusKey] || "" : "";
+      const stNorm = normalize(status);
+      prestMap[nomeNorm] = {
+        status,
+        atualizado:
+          stNorm.includes("ok") ||
+          stNorm.includes("em dia") ||
+          stNorm.includes("enviado")
+            ? 1
+            : 0
+      };
     });
-  });
 
-  if (totalRegistros === 0) {
-    container.textContent = "Não há registros para os filtros selecionados.";
-    return;
+    /* Experience */
+    const eSample = experience[0] || {};
+    const eAlunoKey = findKeyByPatterns(eSample, ["aluno", "cliente", "nome"]);
+    const eMesKey = findKeyByPatterns(eSample, ["mes", "mês"]);
+    const eEncontroKey = findKeyByPatterns(eSample, ["encontro"]);
+    const ePresencaKey = findKeyByPatterns(eSample, ["presenca", "presença"]);
+
+    const expMap = {};
+    experience.forEach(e => {
+      const nome = eAlunoKey ? e[eAlunoKey] : "";
+      const nomeNorm = normalize(nome);
+      if (!nomeNorm) return;
+
+      if (!expMap[nomeNorm]) expMap[nomeNorm] = [];
+
+      expMap[nomeNorm].push({
+        mes: eMesKey ? e[eMesKey] || "" : "",
+        encontro: eEncontroKey ? e[eEncontroKey] || "" : "",
+        presenca:
+          ePresencaKey &&
+          normalize(e[ePresencaKey]).includes("sim")
+            ? 1
+            : 0
+      });
+    });
+
+    /* Batalha Naval – usando Oportunidade total por aluno */
+    const bSample = bnav[0] || {};
+    const bAlunoKey = findKeyByPatterns(bSample, ["aluno", "cliente", "nome"]);
+    const bPotKey = findKeyByPatterns(bSample, ["oportunidade total por aluno", "oportunidade total", "potencial", "upsell"]);
+    const bStatusKey = findKeyByPatterns(bSample, ["status"]);
+
+    const bnMap = {};
+    bnav.forEach(b => {
+      const nome = bAlunoKey ? b[bAlunoKey] : "";
+      const nomeNorm = normalize(nome);
+      if (!nomeNorm) return;
+
+      const potencial = bPotKey ? parseNumberBR(b[bPotKey]) : 0;
+
+      bnMap[nomeNorm] = {
+        potencial,
+        status: bStatusKey ? b[bStatusKey] || "" : "",
+        observacao: b["Observação"] || b["Observacao"] || ""
+      };
+    });
+
+    /* Vendas / Renovações */
+    const vSample = vendas[0] || {};
+    const vAlunoKey = findKeyByPatterns(vSample, ["aluno", "cliente", "nome"]);
+    const vDataKey = findKeyByPatterns(vSample, ["data"]);
+    const vProdutoKey = findKeyByPatterns(vSample, ["produto", "plano", "descricao"]);
+    const vValorKey = findKeyByPatterns(vSample, ["valor"]);
+
+    const vendMap = {};
+    vendas.forEach(v => {
+      const nome = vAlunoKey ? v[vAlunoKey] : "";
+      const nomeNorm = normalize(nome);
+      if (!nomeNorm) return;
+
+      vendMap[nomeNorm] = {
+        ultimaCompra: vDataKey ? v[vDataKey] || "" : "",
+        produto: vProdutoKey ? v[vProdutoKey] || "" : "",
+        valor: vValorKey ? parseNumberBR(v[vValorKey]) : 0
+      };
+    });
+
+    /* Base final (pivot principal = Jornada) */
+    const alunos = Object.keys(jornadaMap);
+    const baseFinal = alunos.map(n => {
+      const j = jornadaMap[n];
+      const p = prestMap[n] || {};
+      const ex = expMap[n] || [];
+      const bn = bnMap[n] || {};
+      const vd = vendMap[n] || {};
+      const rg = regrasMap[j.planoNorm] || {};
+
+      return {
+        nomeOriginal: j.aluno,
+        nomeNorm: n,
+
+        plano: j.plano,
+        status: j.status,
+        risco: j.risco,
+        prazo: j.prazo,
+        avanc: j.avanc,
+        conclusao: j.conclusao,
+        dataInicio: j.dataInicio,
+        dataFim: j.dataFim,
+
+        prazoRegra: rg.prazo || 0,
+        valorRegra: rg.valor || 0,
+
+        prestStatus: p.status || "",
+        prestAtualizado: p.atualizado || 0,
+
+        experience: ex,
+
+        potencial: bn.potencial || 0,
+        bnStatus: bn.status || "",
+        observacaoBN: bn.observacao || "",
+
+        ultimaCompra: vd.ultimaCompra || "",
+        produto: vd.produto || "",
+        valorCompra: vd.valor || 0
+      };
+    });
+
+    return baseFinal;
   }
 
-  const taxa = (totalPresenca / totalRegistros) * 100;
+  /* ============================================================
+     Render – KPIs, gráficos, tabelas, modal
+     ============================================================ */
+  function renderAll(base) {
+    window.CS_BASE = base;
 
-  container.innerHTML = `
-    <div class="exp-line"><strong>Registros considerados:</strong> ${totalRegistros}</div>
-    <div class="exp-line"><strong>Presenças:</strong> ${totalPresenca}</div>
-    <div class="exp-line"><strong>Taxa de participação:</strong> ${taxa.toFixed(1)}%</div>
-    <div class="exp-line">
-      <strong>Filtro ativo:</strong>
-      Mês = ${mesFiltro === "__all__" ? "Todos" : mesFiltro},
-      Encontro = ${encFiltro === "__all__" ? "Todos" : encFiltro}
-    </div>
-  `;
-}
-
-/* GRÁFICO – AVANÇO JORNADA */
-function buildChartAvanco(base) {
-  const ctx = document.getElementById("chart-avanco");
-  if (!ctx) return;
-
-  if (chartAvanco) {
-    chartAvanco.destroy();
-    chartAvanco = null;
+    buildKPIs(base);
+    buildFilters(base);
+    buildChartAvanco(base);
+    buildChartChurn(base);
+    buildChartPrestacao(base);
+    buildChartUpsell(base);
+    buildExperienceSummary(base);
+    buildTables(base);
+    setupModal();
   }
 
-  const ordenado = [...base].sort((a, b) => (b.progresso || 0) - (a.progresso || 0));
+  /* KPIs */
+  function buildKPIs(base) {
+    const ativos = base.filter(a => !normalize(a.status).includes("encerr")).length;
+    const encerrados = base.length - ativos;
 
-  const labels = ordenado.map(a => a.nomeOriginal);
-  const data   = ordenado.map(a => a.progresso || 0);
+    document.getElementById("kpi-alunos-ativos").textContent = ativos;
+    document.getElementById("kpi-alunos-ativos-extra").textContent =
+      encerrados + " encerrados";
 
-  chartAvanco = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Conclusão (%)",
-          data,
-          borderWidth: 0,
-          backgroundColor: "#1F73B7"
-        }
-      ]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      plugins: {
-        legend: { display: false }
+    const mediaConclusao =
+      base.reduce((sum, a) => sum + (a.conclusao || 0), 0) /
+      (base.length || 1);
+
+    document.getElementById("kpi-taxasucesso").textContent =
+      mediaConclusao.toFixed(1) + "%";
+    document.getElementById("kpi-taxasucesso-extra").textContent =
+      "Média geral da trilha";
+
+    const prestOK = base.filter(a => a.prestAtualizado === 1).length;
+    const prestPerc = (prestOK / (base.length || 1)) * 100;
+
+    document.getElementById("kpi-prestacao").textContent =
+      prestPerc.toFixed(1) + "%";
+    document.getElementById("kpi-prestacao-extra").textContent =
+      prestOK + " de " + base.length + " atualizaram";
+
+    const totalUpsell = base.reduce((sum, a) => sum + (a.potencial || 0), 0);
+    document.getElementById("kpi-upsell").textContent =
+      "R$ " + totalUpsell.toLocaleString("pt-BR");
+    document.getElementById("kpi-upsell-extra").textContent =
+      "Potencial total da base (Batalha Naval)";
+  }
+
+  /* Preenche combobox de filtros (sem mexer nos gráficos ainda) */
+  function buildFilters(base) {
+    const planoSel = document.getElementById("filtro-plano");
+    const mesSel = document.getElementById("filtro-mes");
+    const encSel = document.getElementById("filtro-encontro");
+
+    if (planoSel) {
+      const planos = Array.from(
+        new Set(base.map(a => a.plano).filter(Boolean))
+      ).sort();
+      planos.forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        planoSel.appendChild(opt);
+      });
+    }
+
+    const mesesSet = new Set();
+    const encontrosSet = new Set();
+    base.forEach(a => {
+      (a.experience || []).forEach(e => {
+        if (e.mes) mesesSet.add(e.mes);
+        if (e.encontro) encontrosSet.add(e.encontro);
+      });
+    });
+
+    if (mesSel) {
+      Array.from(mesesSet)
+        .sort()
+        .forEach(m => {
+          const opt = document.createElement("option");
+          opt.value = m;
+          opt.textContent = m;
+          mesSel.appendChild(opt);
+        });
+    }
+
+    if (encSel) {
+      Array.from(encontrosSet)
+        .sort()
+        .forEach(e => {
+          const opt = document.createElement("option");
+          opt.value = e;
+          opt.textContent = e;
+          encSel.appendChild(opt);
+        });
+    }
+  }
+
+  /* Gráfico – Avanço da Jornada (foco em ativos) */
+  function buildChartAvanco(base) {
+    const canvas = document.getElementById("chart-avanco");
+    if (!canvas) return;
+
+    const ativos = base.filter(
+      a => !normalize(a.status).includes("encerr") &&
+           !normalize(a.status).includes("finaliz") &&
+           !normalize(a.status).includes("conclu")
+    );
+
+    // Ordena do menor para o maior (mostrar quem está atrasado primeiro)
+    ativos.sort((a, b) => (a.conclusao || 0) - (b.conclusao || 0));
+
+    const labels = ativos.map(a => a.nomeOriginal);
+    const data = ativos.map(a => a.conclusao || 0);
+
+    new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Conclusão (%)",
+            data,
+            backgroundColor: "#1F73B7",
+            borderWidth: 0
+          }
+        ]
       },
-      scales: {
-        x: { max: 100 }
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            max: 100,
+            ticks: { callback: v => v + "%" }
+          }
+        }
       }
-    }
-  });
-}
-
-/* GRÁFICO – RISCO DE CHURN */
-function buildChartChurn(base) {
-  const ctx = document.getElementById("chart-churn");
-  if (!ctx) return;
-
-  if (chartChurn) {
-    chartChurn.destroy();
-    chartChurn = null;
+    });
   }
 
-  const counts = {
-    saudavel: 0,
-    moderado: 0,
-    alto: 0,
-    encerrado: 0,
-    alerta: 0,
-    outros: 0
-  };
+  /* Gráfico – Risco de Churn */
+  function buildChartChurn(base) {
+    const canvas = document.getElementById("chart-churn");
+    if (!canvas) return;
 
-  base.forEach(a => {
-    const r = normalize(a.risco);
-    if (!r) {
-      counts.outros++;
-    } else if (r.includes("saud")) {
-      counts.saudavel++;
-    } else if (r.includes("moder")) {
-      counts.moderado++;
-    } else if (r.includes("alto")) {
-      counts.alto++;
-    } else if (r.includes("encerr")) {
-      counts.encerrado++;
-    } else if (r.includes("alert")) {
-      counts.alerta++;
-    } else {
-      counts.outros++;
-    }
-  });
+    const counts = {
+      saudavel: 0,
+      atencao: 0,
+      alto: 0,
+      encerrado: 0,
+      outros: 0
+    };
 
-  chartChurn = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: [
-        "Saudável",
-        "Moderado",
-        "Alto",
-        "Encerrado",
-        "Alerta",
-        "Outros"
-      ],
-      datasets: [
-        {
-          data: [
-            counts.saudavel,
-            counts.moderado,
-            counts.alto,
-            counts.encerrado,
-            counts.alerta,
-            counts.outros
-          ],
-          backgroundColor: [
-            "#2ECC71",
-            "#C8A300",
-            "#CC3333",
-            "#1F73B7",
-            "#FF7F0E",
-            "#7A8194"
-          ]
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      cutout: "55%",
-      plugins: {
-        legend: { position: "bottom" }
+    base.forEach(a => {
+      const r = normalize(a.risco);
+      if (!r) {
+        counts.outros++;
+      } else if (r.includes("saud")) {
+        counts.saudavel++;
+      } else if (r.includes("aten") || r.includes("moder")) {
+        counts.atencao++;
+      } else if (r.includes("alto") || r.includes("critico") || r.includes("crítico") || r.includes("🚨")) {
+        counts.alto++;
+      } else if (r.includes("encerr") || r.includes("cancel")) {
+        counts.encerrado++;
+      } else {
+        counts.outros++;
       }
-    }
-  });
-}
+    });
 
-/* GRÁFICO – PRESTAÇÃO DE CONTAS */
-function buildChartPrestacao(base) {
-  const ctx = document.getElementById("chart-prestacao");
-  if (!ctx) return;
-
-  if (chartPrest) {
-    chartPrest.destroy();
-    chartPrest = null;
-  }
-
-  let ok = 0, pend = 0;
-
-  base.forEach(a => {
-    if (a.prestAtualizado === 1) ok++;
-    else pend++;
-  });
-
-  chartPrest = new Chart(ctx, {
-    type: "pie",
-    data: {
-      labels: ["Atualizado", "Pendente"],
-      datasets: [
-        {
-          data: [ok, pend],
-          backgroundColor: ["#2ECC71", "#CC3333"]
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: "bottom" }
-      }
-    }
-  });
-}
-
-/* GRÁFICO – UPSALE / BATALHA NAVAL */
-function buildChartUpsell(base) {
-  const ctx = document.getElementById("chart-upsell");
-  if (!ctx) return;
-
-  if (chartUpsell) {
-    chartUpsell.destroy();
-    chartUpsell = null;
-  }
-
-  // Apenas quem tem potencial > 0
-  const comPotencial = base.filter(a => (a.potencial || 0) > 0);
-  const ordenado = [...comPotencial].sort((a, b) => (b.potencial || 0) - (a.potencial || 0));
-
-  const labels = ordenado.map(a => a.nomeOriginal);
-  const data   = ordenado.map(a => a.potencial || 0);
-
-  chartUpsell = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "Potencial (R$)",
-          data,
-          backgroundColor: "#C8A300"
-        }
-      ]
-    },
-    options: {
-      indexAxis: "y",
-      responsive: true,
-      plugins: {
-        legend: { display: false }
+    new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels: ["Saudável", "Atenção", "Alto risco", "Encerrado", "Outros"],
+        datasets: [
+          {
+            data: [
+              counts.saudavel,
+              counts.atencao,
+              counts.alto,
+              counts.encerrado,
+              counts.outros
+            ],
+            backgroundColor: [
+              "#2ECC71",
+              "#C8A300",
+              "#CC3333",
+              "#1F73B7",
+              "#FF7F0E"
+            ]
+          }
+        ]
       },
-      scales: {
-        x: {
-          ticks: {
-            callback: function(value) {
-              return "R$ " + value.toLocaleString("pt-BR");
+      options: {
+        responsive: true,
+        cutout: "55%",
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+  }
+
+  /* Gráfico – Prestação de Contas */
+  function buildChartPrestacao(base) {
+    const canvas = document.getElementById("chart-prestacao");
+    if (!canvas) return;
+
+    let ok = 0,
+      pend = 0;
+
+    base.forEach(a => {
+      if (a.prestAtualizado === 1) ok++;
+      else pend++;
+    });
+
+    new Chart(canvas, {
+      type: "pie",
+      data: {
+        labels: ["Atualizado", "Pendente"],
+        datasets: [
+          {
+            data: [ok, pend],
+            backgroundColor: ["#2ECC71", "#CC3333"]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: "bottom" }
+        }
+      }
+    });
+  }
+
+  /* Gráfico – Upsell / Batalha Naval */
+  function buildChartUpsell(base) {
+    const canvas = document.getElementById("chart-upsell");
+    if (!canvas) return;
+
+    // mostra apenas quem tem potencial > 0
+    const comPotencial = base.filter(a => (a.potencial || 0) > 0);
+    comPotencial.sort((a, b) => (b.potencial || 0) - (a.potencial || 0));
+
+    const labels = comPotencial.map(a => a.nomeOriginal);
+    const data = comPotencial.map(a => a.potencial || 0);
+
+    new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Oportunidade total por aluno (R$)",
+            data,
+            backgroundColor: "#C8A300"
+          }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          x: {
+            ticks: {
+              callback: v =>
+                "R$ " + Number(v).toLocaleString("pt-BR", { maximumFractionDigits: 0 })
             }
           }
         }
       }
+    });
+  }
+
+  /* Experience – resumo simples */
+  function buildExperienceSummary(base) {
+    const div = document.getElementById("experience-summary");
+    if (!div) return;
+
+    let totalRegistros = 0;
+    let totalPresencas = 0;
+    const meses = new Set();
+    const encontros = new Set();
+
+    base.forEach(a => {
+      (a.experience || []).forEach(e => {
+        totalRegistros++;
+        if (e.presenca) totalPresencas++;
+        if (e.mes) meses.add(e.mes);
+        if (e.encontro) encontros.add(e.encontro);
+      });
+    });
+
+    if (totalRegistros === 0) {
+      div.textContent = "Nenhum dado de presença registrado ainda.";
+      return;
     }
-  });
-}
 
-/* TABELAS */
-function buildTables(base) {
-  const tbodyA = document.getElementById("table-atencao");
-  const tbodyE = document.getElementById("table-encerrados");
+    const taxa = (totalPresencas / totalRegistros) * 100;
 
-  tbodyA.innerHTML = "";
-  tbodyE.innerHTML = "";
+    div.innerHTML = `
+      <div class="exp-line"><strong>Taxa geral de presença:</strong> ${taxa.toFixed(1)}%</div>
+      <div class="exp-line"><strong>Registros de presença:</strong> ${totalPresencas} de ${totalRegistros}</div>
+      <div class="exp-line"><strong>Meses com encontros:</strong> ${meses.size}</div>
+      <div class="exp-line"><strong>Tipos de encontros:</strong> ${encontros.size}</div>
+    `;
+  }
 
-  base.forEach(a => {
-    const linha = `
-      <tr>
-        <td><span class="link" onclick="openModal('${a.nomeNorm}')">${a.nomeOriginal}</span></td>
-        <td>${a.plano || "-"}</td>
-        <td>${(a.progresso || 0).toFixed(0)}%</td>
-        <td>${a.prazo || "-"}</td>
-        <td>${a.risco || "-"}</td>
-        <td>${a.prestStatus || "-"}</td>
-        <td>R$ ${(a.potencial || 0).toLocaleString("pt-BR")}</td>
-      </tr>
+  /* Tabelas – Atenção e Encerrados */
+  function buildTables(base) {
+    const tbodyA = document.getElementById("table-atencao");
+    const tbodyE = document.getElementById("table-encerrados");
+    tbodyA.innerHTML = "";
+    tbodyE.innerHTML = "";
+
+    base.forEach(a => {
+      const linha = `
+        <tr>
+          <td><span class="link-aluno" onclick="openModal('${a.nomeNorm}')">${a.nomeOriginal}</span></td>
+          <td>${a.plano || "-"}</td>
+          <td>${(a.conclusao || 0).toFixed(1)}%</td>
+          <td>${a.prazo || "-"}</td>
+          <td>${a.risco || "-"}</td>
+          <td>${a.prestStatus || "-"}</td>
+          <td>R$ ${(a.potencial || 0).toLocaleString("pt-BR")}</td>
+        </tr>
+      `;
+
+      if (normalize(a.status).includes("encerr") ||
+          normalize(a.status).includes("finaliz") ||
+          normalize(a.status).includes("conclu")) {
+        tbodyE.insertAdjacentHTML("beforeend", linha);
+      } else {
+        tbodyA.insertAdjacentHTML("beforeend", linha);
+      }
+    });
+  }
+
+  /* Modal */
+  function setupModal() {
+    const overlay = document.getElementById("modal-overlay");
+    const closeBtn = document.getElementById("modal-close");
+
+    closeBtn.addEventListener("click", () => {
+      overlay.classList.remove("show");
+    });
+
+    overlay.addEventListener("click", e => {
+      if (e.target === overlay) {
+        overlay.classList.remove("show");
+      }
+    });
+  }
+
+  function openModal(nomeNorm) {
+    const a = (window.CS_BASE || []).find(x => x.nomeNorm === nomeNorm);
+    if (!a) return;
+
+    const html = `
+      <div class="modal-header">
+        <h2>${a.nomeOriginal}</h2>
+        <span>${a.plano || ""}</span>
+      </div>
+      <div class="modal-grid">
+        <div class="modal-block">
+          <h3>Jornada</h3>
+          <p><strong>Status do plano:</strong> ${a.status || "-"}</p>
+          <p><strong>Conclusão:</strong> ${(a.conclusao || 0).toFixed(1)}%</p>
+          <p><strong>Risco de churn:</strong> ${a.risco || "-"}</p>
+          <p><strong>Prazo:</strong> ${a.prazo || "-"}</p>
+          <p><strong>Início:</strong> ${a.dataInicio || "-"}</p>
+          <p><strong>Fim previsto/real:</strong> ${a.dataFim || "-"}</p>
+        </div>
+        <div class="modal-block">
+          <h3>Financeiro & Upsell</h3>
+          <p><strong>Prestação de contas:</strong> ${a.prestStatus || "-"}</p>
+          <p><strong>Oportunidade total por aluno:</strong> R$ ${(a.potencial || 0).toLocaleString("pt-BR")}</p>
+          <p><strong>Última compra:</strong> ${a.ultimaCompra || "-"}</p>
+          <p><strong>Produto:</strong> ${a.produto || "-"}</p>
+        </div>
+      </div>
     `;
 
-    if (normalize(a.status).includes("encerr")) {
-      tbodyE.insertAdjacentHTML("beforeend", linha);
-    } else {
-      tbodyA.insertAdjacentHTML("beforeend", linha);
-    }
-  });
-}
+    document.getElementById("modal-content").innerHTML = html;
+    document.getElementById("modal-overlay").classList.add("show");
+  }
 
-/* MODAL */
-function setupModal() {
-  const overlay = document.getElementById("modal-overlay");
-  const closeBtn = document.getElementById("modal-close");
-
-  closeBtn.addEventListener("click", () => {
-    overlay.classList.remove("show");
-  });
-
-  overlay.addEventListener("click", (e) => {
-    if (e.target === overlay) {
-      overlay.classList.remove("show");
-    }
-  });
-}
-
-function openModal(nomeNorm) {
-  const a = CS_BASE.find(x => x.nomeNorm === nomeNorm);
-  if (!a) return;
-
-  const modalContent = document.getElementById("modal-content");
-
-  const presencas = (a.experience || []).filter(e => e.presenca === 1).length;
-  const totalExp  = (a.experience || []).length;
-
-  const txExp = totalExp > 0 ? ((presencas / totalExp) * 100).toFixed(1) + "%" : "-";
-
-  modalContent.innerHTML = `
-    <div class="modal-header">
-      <h2>${a.nomeOriginal}</h2>
-      <span>${a.plano || ""}</span>
-    </div>
-
-    <div class="modal-grid">
-      <div class="modal-block">
-        <h3>Jornada</h3>
-        <p><b>Status do plano:</b> ${a.status || "-"}</p>
-        <p><b>Conclusão:</b> ${(a.progresso || 0).toFixed(1)}%</p>
-        <p><b>Risco de churn:</b> ${a.risco || "-"}</p>
-        <p><b>Prazo:</b> ${a.prazo || "-"}</p>
-        <p><b>Início:</b> ${a.dataInicio || "-"}</p>
-        <p><b>Fim:</b> ${a.dataFim || "-"}</p>
-      </div>
-
-      <div class="modal-block">
-        <h3>Financeiro & Upsell</h3>
-        <p><b>Prestação de contas:</b> ${a.prestStatus || "-"}</p>
-        <p><b>Potencial Batalha Naval:</b> R$ ${(a.potencial || 0).toLocaleString("pt-BR")}</p>
-        <p><b>Última compra:</b> ${a.ultimaCompra || "-"}</p>
-        <p><b>Produto:</b> ${a.produto || "-"}</p>
-        <p><b>Valor última compra:</b> R$ ${(a.valorCompra || 0).toLocaleString("pt-BR")}</p>
-        <p><b>Engajamento Experience:</b> ${txExp}</p>
-      </div>
-    </div>
-  `;
-
-  document.getElementById("modal-overlay").classList.add("show");
-}
-
-/* START */
-loadAllCS();
+  /* Start */
+  loadAllCS();
 </script>
 </body>
 </html>
